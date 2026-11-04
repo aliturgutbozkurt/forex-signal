@@ -60,9 +60,7 @@ class EndToEndPlatformIntegrationTests {
 
     @Test
     void dashboardInstrumentDetailAndStyleguideRenderWithSecurityHeadersAndLegalDisclaimer() throws Exception {
-        mockMvc.perform(get("/")
-                        .locale(java.util.Locale.forLanguageTag("tr-TR"))
-                        .param("q", "Bugün BIST'te en güçlü AL sinyalleri?"))
+        mockMvc.perform(get("/").param("q", "Bugün BIST'te en güçlü AL sinyalleri?"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Security-Policy"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("karar destek aracıdır")))
@@ -76,7 +74,7 @@ class EndToEndPlatformIntegrationTests {
 
         mockMvc.perform(get("/styleguide"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("oklch(0.78 0.17 155)")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("oklch(0.48 0.15 155)")));
     }
 
     @Test
@@ -151,4 +149,3 @@ class EndToEndPlatformIntegrationTests {
         assertThat(elapsedMs).isLessThan(50L);
     }
 }
-

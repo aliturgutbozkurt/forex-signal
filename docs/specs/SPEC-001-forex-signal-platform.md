@@ -276,8 +276,8 @@ Teknikler: scanner'a sembol başına değil **toplu (batch) istek**, HTTP/2 keep
 
 Önlemler: look-ahead bias yok (no-repaint TLA+ garantisi), survivorship bias (delist dahil), gerçekçi maliyet modeli, parametre optimizasyonunda walk-forward, AI'nın yön kararı **vermemesi** (yalnızca açıklama/bağlam; opsiyonel küçük ağırlıklı sentiment oyu, ablation testiyle).
 
-## 10. UI/UX Gereksinimleri (Ultra Premium)
-- **Tasarım dili:** koyu tema öncelikli (OKLCH paleti, "midnight graphite" zemin, AL = zümrüt `oklch(0.78 0.17 155)`, SAT = mercan `oklch(0.68 0.2 25)`), glassmorphism kartlar, ince grain, Inter / JetBrains Mono (rakamlar tabular-nums).
+## 10. UI/UX Gereksinimleri (Ultra Premium — Kurumsal Açık Tema)
+- **Tasarım dili:** açık zemin öncelikli kurumsal finans arayüzü (AI klişesi mor/neon gradyanlar kullanılmaz; OKLCH açık palet: kırık beyaz/kağıt zemin `oklch(0.985 0.003 90)`, kart yüzeyi `#ffffff`, AL = kurumsal zümrüt `oklch(0.48 0.15 155)`, SAT = kurumsal mercan/kırmızı `oklch(0.52 0.19 25)`), net kenarlıklar, Inter / JetBrains Mono (rakamlar tabular-nums).
 - **Ekranlar:** Dashboard (canlı sinyal akışı + heatmap), Enstrüman detay (grafik + gösterge paneli + AI açıklama), Watchlist & zaman pencereleri, Performans, Strateji laboratuvarı (backtest), Ayarlar (ses).
 - **Etkileşim:** View Transitions, HTMX partial swap, skeleton loader, fiyat tick flash animasyonu, sinyal kartı "pulse", komut paleti (⌘K), klavye kısayolları.
 - **Ses UX:** AL → yükselen iki tonlu çan + kadın/erkek seçilebilir ses; SAT → alçalan ton + farklı ses; sessiz saatler; tek tık "test sesi"; tarayıcı autoplay kuralı için ilk etkileşimde ses kilidi açma.

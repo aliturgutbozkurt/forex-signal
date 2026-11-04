@@ -4,8 +4,8 @@
   "description": "Multi-asset AL/SAT signal platform with real-time voice alerts and XAI",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0d14",
-  "theme_color": "#00d48a",
+  "background_color": "#f8f9fa",
+  "theme_color": "#15803d",
   "icons": [
     {
       "src": "/icon-192.png",
