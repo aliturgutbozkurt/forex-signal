@@ -28,7 +28,12 @@
     </nav>
 </header>
 
-<main class="container-main">
+<main class="container-main"
+      th:with="verdictRows=${snapshot.indicatorVerdictRows()},
+               buyCount=${verdictRows.?[action() == 'AL'].size()},
+               sellCount=${verdictRows.?[action() == 'SAT'].size()},
+               holdCount=${verdictRows.?[action() == 'TUT'].size()},
+               totalVerdicts=${verdictRows.size()}">
     <div class="grid-dashboard">
         <!-- TradingView Official Chart + FSP Closed-Bar Engine Chart -->
         <section class="glass-card" style="display:grid;gap:1rem;align-content:start;">
@@ -69,10 +74,47 @@
 
         <!-- Indicator & Confluence Panel -->
         <aside class="glass-card tabular-nums">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;">
                 <h3 style="font-size:0.95rem;">40+ Gösterge Özeti (O(1) Artımlı Motor)</h3>
                 <span class="badge tabular-nums" th:text="${timeframe.label()} + ' (' + ${timeframe.name()} + ')'">15m (M15)</span>
             </div>
+
+            <!-- Top AL / SAT / TUT Summary Box above Indicators -->
+            <div style="padding:0.75rem;margin-bottom:0.85rem;border-radius:var(--radius-sm);background:var(--bg-canvas);border:1px solid var(--border-subtle);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.55rem;">
+                    <span style="font-size:0.76rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.03em;">
+                        Gösterge Karar Özeti (<span th:text="${totalVerdicts}">14</span> Grup)
+                    </span>
+                    <span class="badge"
+                          th:classappend="${buyCount > sellCount} ? 'badge-buy' : (${sellCount > buyCount} ? 'badge-sell' : 'badge-hold')"
+                          th:text="${buyCount >= sellCount + 4} ? 'GENEL: GÜÇLÜ AL' : (${buyCount > sellCount} ? 'GENEL: AL' : (${sellCount >= buyCount + 4} ? 'GENEL: GÜÇLÜ SAT' : (${sellCount > buyCount} ? 'GENEL: SAT' : 'GENEL: TUT (NÖTR)')))">
+                        GENEL: AL
+                    </span>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;text-align:center;margin-bottom:0.55rem;">
+                    <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--color-buy-bg);border:1px solid var(--color-buy-border);">
+                        <div style="font-size:0.7rem;font-weight:700;color:var(--color-buy);">AL</div>
+                        <strong style="font-size:1.15rem;color:var(--color-buy);" th:text="${buyCount}">8</strong>
+                    </div>
+                    <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--color-sell-bg);border:1px solid var(--color-sell-border);">
+                        <div style="font-size:0.7rem;font-weight:700;color:var(--color-sell);">SAT</div>
+                        <strong style="font-size:1.15rem;color:var(--color-sell);" th:text="${sellCount}">3</strong>
+                    </div>
+                    <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border-strong);">
+                        <div style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">TUT</div>
+                        <strong style="font-size:1.15rem;color:var(--text-primary);" th:text="${holdCount}">3</strong>
+                    </div>
+                </div>
+
+                <!-- Proportional distribution bar -->
+                <div style="display:flex;height:6px;border-radius:999px;overflow:hidden;background:var(--bg-elevated);">
+                    <div th:style="'width:' + (${totalVerdicts > 0 ? (buyCount * 100.0 / totalVerdicts) : 0}) + '%;background:var(--color-buy);'"></div>
+                    <div th:style="'width:' + (${totalVerdicts > 0 ? (holdCount * 100.0 / totalVerdicts) : 0}) + '%;background:#94a3b8;'"></div>
+                    <div th:style="'width:' + (${totalVerdicts > 0 ? (sellCount * 100.0 / totalVerdicts) : 0}) + '%;background:var(--color-sell);'"></div>
+                </div>
+            </div>
+
             <table class="table-clean">
                 <thead>
                 <tr>
@@ -82,7 +124,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="row : ${snapshot.indicatorVerdictRows()}">
+                <tr th:each="row : ${verdictRows}">
                     <th th:text="${row.label()}">EMA 9 / 21 / 50</th>
                     <td th:text="${row.valueText()}">4065,12 / 4050,30 / 4020,15</td>
                     <td style="text-align:right;">

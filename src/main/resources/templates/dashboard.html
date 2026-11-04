@@ -66,12 +66,20 @@
         </div>
     </section>
 
-    <div class="grid-dashboard">
+    <div class="grid-dashboard"
+         th:with="buySigCount=${signals.?[direction().name() == 'BUY'].size()},
+                  sellSigCount=${signals.?[direction().name() == 'SELL'].size()},
+                  holdCount=${instruments.size() > (buySigCount + sellSigCount) ? (instruments.size() - buySigCount - sellSigCount) : 0}">
         <!-- Left Column: Live Signal Stream -->
         <section>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;flex-wrap:wrap;gap:0.5rem;">
                 <h2 style="font-size:1.05rem;">Canlı AL / SAT Sinyalleri (No-Repaint, Kapanmış Bar)</h2>
-                <span style="font-size:0.8rem;color:var(--text-muted);">Komut Paleti: <code>⌘K</code></span>
+                <div class="tabular-nums" style="display:flex;align-items:center;gap:0.45rem;">
+                    <span class="badge badge-buy" th:text="'AL: ' + ${buySigCount}">AL: 6</span>
+                    <span class="badge badge-sell" th:text="'SAT: ' + ${sellSigCount}">SAT: 4</span>
+                    <span class="badge badge-hold" th:text="'TUT: ' + ${holdCount}">TUT: 10</span>
+                    <span style="font-size:0.8rem;color:var(--text-muted);margin-left:0.35rem;">Komut Paleti: <code>⌘K</code></span>
+                </div>
             </div>
             <div class="signal-grid" id="live-signal-list">
                 <article th:each="sig : ${signals}"
@@ -128,7 +136,30 @@
                    th:text="${aiAnswer.answerTr()}"></p>
             </div>
 
-            <div class="glass-card">
+            <div class="glass-card tabular-nums">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;">
+                    <h3 style="font-size:0.95rem;">Piyasa Karar Özeti (AL / SAT / TUT)</h3>
+                    <span class="badge"
+                          th:classappend="${buySigCount > sellSigCount} ? 'badge-buy' : (${sellSigCount > buySigCount} ? 'badge-sell' : 'badge-hold')"
+                          th:text="${buySigCount > sellSigCount} ? 'GENEL: AL AĞIRLIKLI' : (${sellSigCount > buySigCount} ? 'GENEL: SAT AĞIRLIKLI' : 'GENEL: DENGELİ (TUT)')">
+                        GENEL: AL AĞIRLIKLI
+                    </span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;text-align:center;margin-bottom:0.75rem;">
+                    <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--color-buy-bg);border:1px solid var(--color-buy-border);">
+                        <div style="font-size:0.7rem;font-weight:700;color:var(--color-buy);">AL</div>
+                        <strong style="font-size:1.15rem;color:var(--color-buy);" th:text="${buySigCount}">6</strong>
+                    </div>
+                    <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--color-sell-bg);border:1px solid var(--color-sell-border);">
+                        <div style="font-size:0.7rem;font-weight:700;color:var(--color-sell);">SAT</div>
+                        <strong style="font-size:1.15rem;color:var(--color-sell);" th:text="${sellSigCount}">4</strong>
+                    </div>
+                    <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border-strong);">
+                        <div style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">TUT</div>
+                        <strong style="font-size:1.15rem;color:var(--text-primary);" th:text="${holdCount}">10</strong>
+                    </div>
+                </div>
+
                 <h3 style="font-size:0.95rem;margin-bottom:0.75rem;">Enstrüman Kataloğu &amp; Seans Durumu</h3>
                 <table class="table-clean tabular-nums">
                     <thead>

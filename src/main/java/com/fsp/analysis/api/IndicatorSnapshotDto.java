@@ -143,5 +143,35 @@ public record IndicatorSnapshotDto(
         }
         return new IndicatorRowVerdict(label, valueText, "TUT", "badge-hold");
     }
+
+    public int buyVerdictCount() {
+        return (int) indicatorVerdictRows().stream().filter(r -> "AL".equals(r.action())).count();
+    }
+
+    public int sellVerdictCount() {
+        return (int) indicatorVerdictRows().stream().filter(r -> "SAT".equals(r.action())).count();
+    }
+
+    public int holdVerdictCount() {
+        return (int) indicatorVerdictRows().stream().filter(r -> "TUT".equals(r.action())).count();
+    }
+
+    public String overallVerdictLabel() {
+        int buy = buyVerdictCount();
+        int sell = sellVerdictCount();
+        if (buy >= sell + 4) return "GÜÇLÜ AL";
+        if (buy > sell) return "AL";
+        if (sell >= buy + 4) return "GÜÇLÜ SAT";
+        if (sell > buy) return "SAT";
+        return "TUT (NÖTR)";
+    }
+
+    public String overallVerdictBadgeClass() {
+        int buy = buyVerdictCount();
+        int sell = sellVerdictCount();
+        if (buy > sell) return "badge-buy";
+        if (sell > buy) return "badge-sell";
+        return "badge-hold";
+    }
 }
 

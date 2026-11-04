@@ -64,6 +64,7 @@ class EndToEndPlatformIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Security-Policy"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("karar destek aracıdır")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Piyasa Karar Özeti (AL / SAT / TUT)")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("THYAO")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("EURUSD")));
 
@@ -71,6 +72,7 @@ class EndToEndPlatformIntegrationTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("15dk Gecikmeli")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("tradingview_advanced_chart")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Gösterge Karar Özeti")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("1m (M1)")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("5m (M5)")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("15m (M15)")))
