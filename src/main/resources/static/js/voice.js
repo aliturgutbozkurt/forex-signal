@@ -707,8 +707,8 @@
                 + ' id="hdr-tf-' + sym + '-' + tf.code + '"'
                 + ' onclick="event.stopPropagation(); window.FspTerminal.selectTimeframe(\'' + sym + '\', \'' + tf.code + '\', true);"'
                 + ' title="' + tf.label + ' (' + tf.code + ') — AL: ' + ev.buyCount + ', SAT: ' + ev.sellCount + ', TUT: ' + ev.holdCount + '"'
-                + ' style="padding:0.18rem 0.42rem;border-radius:var(--radius-sm);border:' + pillBorder + ';background:' + pillBg + ';color:' + pillColor + ';font-size:0.7rem;font-weight:700;cursor:pointer;">'
-                + tf.label + ': ' + ev.overallAction + ' (' + ev.buyCount + '/' + ev.sellCount + '/' + ev.holdCount + ')'
+                + ' style="min-width:0;padding:0.15rem 0.25rem;border-radius:var(--radius-sm);border:' + pillBorder + ';background:' + pillBg + ';color:' + pillColor + ';font-size:0.66rem;font-weight:700;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+                + tf.label + ' ' + ev.overallAction + ' (' + ev.buyCount + '/' + ev.sellCount + ')'
                 + '</button>';
         }
 
@@ -721,11 +721,11 @@
             bodyTfBarHtml += '<button type="button" class="tf-pill-btn' + activeClass + '"'
                 + ' id="body-tf-' + sym + '-' + bTf.code + '"'
                 + ' onclick="window.FspTerminal.selectTimeframe(\'' + sym + '\', \'' + bTf.code + '\', false)">'
-                + '<span style="font-size:0.78rem;font-weight:700;">' + bTf.label + ' (' + bTf.code + ')</span>'
-                + '<span class="badge ' + bEv.overallBadgeClass + '" style="font-size:0.65rem;padding:0.1rem 0.45rem;">' + bEv.overallAction + '</span>'
-                + '<span style="font-size:0.68rem;color:var(--text-secondary);">'
-                + '<strong style="color:var(--signal-buy);">' + bEv.buyCount + 'A</strong> · '
-                + '<strong style="color:var(--signal-sell);">' + bEv.sellCount + 'S</strong> · '
+                + '<span style="font-size:0.73rem;font-weight:700;">' + bTf.label + ' (' + bTf.code + ')</span>'
+                + '<span class="badge ' + bEv.overallBadgeClass + '" style="font-size:0.62rem;padding:0.06rem 0.38rem;">' + bEv.overallAction + '</span>'
+                + '<span style="font-size:0.64rem;color:var(--text-secondary);white-space:nowrap;">'
+                + '<strong style="color:var(--signal-buy);">' + bEv.buyCount + 'A</strong>·'
+                + '<strong style="color:var(--signal-sell);">' + bEv.sellCount + 'S</strong>·'
                 + '<strong>' + bEv.holdCount + 'T</strong>'
                 + '</span>'
                 + '</button>';
@@ -744,34 +744,34 @@
 
         return '<article id="inst-' + sym + '" class="inst-accordion' + (isOpen ? ' open' : '') + '"'
             + ' data-symbol="' + sym + '" data-class="' + inst.assetClass + '" data-name="' + inst.name.toLowerCase() + '">'
-            // ACCORDION HEADER (Full Horizontal Row)
+            // ACCORDION HEADER (Full Horizontal Row, Zero Horizontal Overflow)
             + '<div class="inst-accordion-header" onclick="window.FspTerminal.toggleAccordion(\'' + sym + '\')">'
-            + '  <div style="display:flex;align-items:center;gap:0.65rem;min-width:290px;flex:1.1;flex-wrap:wrap;">'
+            + '  <div style="display:flex;align-items:center;gap:0.55rem;min-width:0;">'
             + '    <span class="inst-accordion-chevron">▶</span>'
-            + '    <div>'
-            + '      <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">'
-            + '        <strong style="font-size:1rem;letter-spacing:-0.01em;">' + sym + ' · ' + inst.name + '</strong>'
-            + '        <span class="badge">' + inst.assetClass + '</span>'
-            + '        <span class="badge tabular-nums">' + inst.currency + '</span>'
+            + '    <div style="min-width:0;">'
+            + '      <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">'
+            + '        <strong style="font-size:0.93rem;letter-spacing:-0.01em;">' + sym + ' · ' + inst.name + '</strong>'
+            + '        <span class="badge" style="font-size:0.65rem;padding:0.1rem 0.45rem;">' + inst.assetClass + '</span>'
+            + '        <span class="badge tabular-nums" style="font-size:0.65rem;padding:0.1rem 0.45rem;">' + inst.currency + '</span>'
             + '      </div>'
-            + '      <div class="tabular-nums" style="font-size:0.76rem;color:var(--text-secondary);margin-top:0.15rem;display:flex;gap:0.75rem;flex-wrap:wrap;">'
-            + '        <span style="color:var(--signal-buy);font-weight:600;">● Seans Açık (24x5)</span>'
+            + '      <div class="tabular-nums" style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.12rem;display:flex;gap:0.55rem;flex-wrap:wrap;align-items:center;">'
+            + '        <span style="color:var(--signal-buy);font-weight:600;">● Açık (24x5)</span>'
             + '        <span>Fiyat: <strong id="hdr-price-' + sym + '" style="color:var(--text-primary);">' + formatFixedTr(curEval.close, curEval.decimals) + ' ' + inst.currency + '</strong></span>'
-            + '        <span id="hdr-tf-label-' + sym + '">Seçili TF: <strong>' + selectedTfObj.label + ' (' + selectedTf + ')</strong></span>'
-            + '        <span id="hdr-regime-' + sym + '" class="badge ' + curEval.regimeBadgeClass + '" style="font-size:0.66rem;padding:0.08rem 0.45rem;">' + curEval.regimeLabel + '</span>'
+            + '        <span id="hdr-tf-label-' + sym + '">TF: <strong>' + selectedTfObj.label + ' (' + selectedTf + ')</strong></span>'
+            + '        <span id="hdr-regime-' + sym + '" class="badge ' + curEval.regimeBadgeClass + '" style="font-size:0.62rem;padding:0.06rem 0.4rem;">' + curEval.regimeLabel + '</span>'
             + '      </div>'
             + '    </div>'
             + '  </div>'
-            // Middle: All 10 Timeframes Quick Summary & Selector Pills
-            + '  <div id="hdr-tf-strip-' + sym + '" style="display:flex;gap:0.3rem;flex-wrap:wrap;flex:2;justify-content:center;">'
+            // Middle: All 10 Timeframes Quick Summary & Selector Pills in 10 equal columns
+            + '  <div id="hdr-tf-strip-' + sym + '" style="display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:0.22rem;min-width:0;">'
             +      headerTfStripHtml
             + '  </div>'
             // Right: Selected Timeframe Total AL / SAT / TUT Counts & Overall Verdict
-            + '  <div class="tabular-nums" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">'
-            + '    <span id="hdr-buy-' + sym + '" class="badge badge-buy" style="font-size:0.78rem;">AL: ' + curEval.buyCount + '</span>'
-            + '    <span id="hdr-sell-' + sym + '" class="badge badge-sell" style="font-size:0.78rem;">SAT: ' + curEval.sellCount + '</span>'
-            + '    <span id="hdr-hold-' + sym + '" class="badge badge-hold" style="font-size:0.78rem;">TUT: ' + curEval.holdCount + '</span>'
-            + '    <span id="hdr-overall-' + sym + '" class="badge ' + curEval.overallBadgeClass + '" style="font-size:0.78rem;">' + curEval.overallLabel + '</span>'
+            + '  <div class="tabular-nums" style="display:flex;align-items:center;gap:0.28rem;flex-wrap:wrap;justify-content:flex-end;">'
+            + '    <span id="hdr-buy-' + sym + '" class="badge badge-buy" style="font-size:0.7rem;padding:0.14rem 0.45rem;">AL: ' + curEval.buyCount + '</span>'
+            + '    <span id="hdr-sell-' + sym + '" class="badge badge-sell" style="font-size:0.7rem;padding:0.14rem 0.45rem;">SAT: ' + curEval.sellCount + '</span>'
+            + '    <span id="hdr-hold-' + sym + '" class="badge badge-hold" style="font-size:0.7rem;padding:0.14rem 0.45rem;">TUT: ' + curEval.holdCount + '</span>'
+            + '    <span id="hdr-overall-' + sym + '" class="badge ' + curEval.overallBadgeClass + '" style="font-size:0.7rem;padding:0.14rem 0.48rem;">' + curEval.overallLabel + '</span>'
             + '  </div>'
             + '</div>'
             // ACCORDION BODY (Timeframe Bar + TradingView Chart + 40+ Dynamic Indicators + All-Timeframe Matrix)
@@ -897,11 +897,11 @@
             var tfCode = TIMEFRAMES[c].code;
             var ev = state.evalBySymbolTf[sym][tfCode];
             tbody += '<td>'
-                + '<div style="margin-bottom:0.18rem;"><span class="badge ' + ev.overallBadgeClass + '" style="font-size:0.65rem;padding:0.08rem 0.42rem;">' + ev.overallAction + '</span></div>'
-                + '<div style="font-size:0.7rem;">'
-                + '<span style="color:var(--signal-buy);">AL:' + ev.buyCount + '</span> · '
-                + '<span style="color:var(--signal-sell);">SAT:' + ev.sellCount + '</span> · '
-                + '<span>TUT:' + ev.holdCount + '</span>'
+                + '<div style="margin-bottom:0.12rem;"><span class="badge ' + ev.overallBadgeClass + '" style="font-size:0.62rem;padding:0.06rem 0.35rem;">' + ev.overallAction + '</span></div>'
+                + '<div style="font-size:0.64rem;white-space:nowrap;">'
+                + '<span style="color:var(--signal-buy);">' + ev.buyCount + 'A</span>·'
+                + '<span style="color:var(--signal-sell);">' + ev.sellCount + 'S</span>·'
+                + '<span>' + ev.holdCount + 'T</span>'
                 + '</div>'
                 + '</td>';
         }
@@ -915,8 +915,8 @@
                 var code = TIMEFRAMES[k].code;
                 var cellRow = state.evalBySymbolTf[sym][code].rows[rIdx];
                 tbody += '<td>'
-                    + '<span class="badge ' + cellRow.badgeClass + '" style="font-size:0.65rem;padding:0.08rem 0.4rem;">' + cellRow.action + '</span>'
-                    + '<div style="font-size:0.67rem;color:var(--text-secondary);margin-top:0.1rem;">' + cellRow.shortVal + '</div>'
+                    + '<span class="badge ' + cellRow.badgeClass + '" style="font-size:0.62rem;padding:0.06rem 0.35rem;">' + cellRow.action + '</span>'
+                    + '<div style="font-size:0.63rem;color:var(--text-secondary);margin-top:0.08rem;">' + cellRow.shortVal + '</div>'
                     + '</td>';
             }
             tbody += '</tr>';
@@ -991,7 +991,7 @@
         var hdrOverall = document.getElementById('hdr-overall-' + sym);
 
         if (hdrPrice) hdrPrice.textContent = formatFixedTr(curEval.close, curEval.decimals) + ' ' + inst.currency;
-        if (hdrTfLabel) hdrTfLabel.innerHTML = 'Seçili TF: <strong>' + selTfObj.label + ' (' + selTf + ')</strong>';
+        if (hdrTfLabel) hdrTfLabel.innerHTML = 'TF: <strong>' + selTfObj.label + ' (' + selTf + ')</strong>';
         if (hdrRegime) {
             hdrRegime.textContent = curEval.regimeLabel;
             hdrRegime.className = 'badge ' + curEval.regimeBadgeClass;
@@ -1018,17 +1018,17 @@
                 hdrBtn.style.color = ev.overallAction === 'AL'
                     ? 'var(--signal-buy)'
                     : (ev.overallAction === 'SAT' ? 'var(--signal-sell)' : 'var(--text-secondary)');
-                hdrBtn.textContent = tf.label + ': ' + ev.overallAction + ' (' + ev.buyCount + '/' + ev.sellCount + '/' + ev.holdCount + ')';
+                hdrBtn.textContent = tf.label + ' ' + ev.overallAction + ' (' + ev.buyCount + '/' + ev.sellCount + ')';
             }
 
             var bodyBtn = document.getElementById('body-tf-' + sym + '-' + tf.code);
             if (bodyBtn) {
                 bodyBtn.className = 'tf-pill-btn' + (isSel ? ' active' : '');
-                bodyBtn.innerHTML = '<span style="font-size:0.78rem;font-weight:700;">' + tf.label + ' (' + tf.code + ')</span>'
-                    + '<span class="badge ' + ev.overallBadgeClass + '" style="font-size:0.65rem;padding:0.1rem 0.45rem;">' + ev.overallAction + '</span>'
-                    + '<span style="font-size:0.68rem;color:var(--text-secondary);">'
-                    + '<strong style="color:var(--signal-buy);">' + ev.buyCount + 'A</strong> · '
-                    + '<strong style="color:var(--signal-sell);">' + ev.sellCount + 'S</strong> · '
+                bodyBtn.innerHTML = '<span style="font-size:0.73rem;font-weight:700;">' + tf.label + ' (' + tf.code + ')</span>'
+                    + '<span class="badge ' + ev.overallBadgeClass + '" style="font-size:0.62rem;padding:0.06rem 0.38rem;">' + ev.overallAction + '</span>'
+                    + '<span style="font-size:0.64rem;color:var(--text-secondary);white-space:nowrap;">'
+                    + '<strong style="color:var(--signal-buy);">' + ev.buyCount + 'A</strong>·'
+                    + '<strong style="color:var(--signal-sell);">' + ev.sellCount + 'S</strong>·'
                     + '<strong>' + ev.holdCount + 'T</strong>'
                     + '</span>';
             }
