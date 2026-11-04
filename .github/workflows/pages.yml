@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build static bundle for GitHub Pages
+        run: |
+          mkdir -p _site
+          cp -R src/main/resources/static/* _site/
+          touch _site/.nojekyll
+          sed -e 's|href="/manifest.webmanifest"|href="manifest.webmanifest"|g' \
+              -e 's|href="/css/app.css"|href="css/app.css"|g' \
+              -e 's|src="/js/voice.js"|src="js/voice.js"|g' \
+              src/main/resources/templates/dashboard.html > _site/index.html
+          cp _site/index.html _site/404.html
+
+      - name: Publish to gh-pages branch
+        run: |
+          cd _site
+          git init -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "deploy: auto-publish FSP Terminal to GitHub Pages"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
