@@ -5,6 +5,7 @@ import com.fsp.shared.Symbol;
 import com.fsp.shared.Timeframe;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
@@ -31,5 +32,8 @@ public interface MarketDataFacade {
     int executeParallelScanCycle(Timeframe timeframe, List<Symbol> symbols);
 
     default void refreshLiveQuotes() {}
-}
 
+    default Map<String, Object> getSharedHotCacheStatus() {
+        return Map.of();
+    }
+}

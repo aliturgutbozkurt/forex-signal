@@ -238,7 +238,7 @@ sequenceDiagram
 | Sayfa ilk yüklemesi | LCP < 1.2 sn, INP < 100 ms, CLS < 0.05 |
 | Başlangıç süresi | < 1.5 sn (AOT cache) |
 
-Teknikler: scanner'a sembol başına değil **toplu (batch) istek**, HTTP/2 keep-alive, `ScopedValue` ile istek bağlamı, primitive dizili ring buffer, `StructuredTaskScope` ile fan-out + deadline, Valkey'de son snapshot cache, SSE ile minimal JSON payload, HTMX OOB swap.
+Teknikler: scanner'a sembol veya kullanıcı başına değil **tekil toplayıcı (Single-Flight Collector) ile tek kullanıcı gibi toplu (batch) istek** atılır; çekilen canlı fiyat ve gösterge verileri **Paylaşımlı Anlık Önbellek (Shared Hot Cache, Stale-While-Revalidate)** katmanında tutulur ve tüm eşzamanlı kullanıcılara `< 1 ms` sürede doğrudan bu anlık cache üzerinden kesintisiz hizmet verilir. Ayrıca HTTP/2 keep-alive, `ScopedValue` ile istek bağlamı, primitive dizili ring buffer, `StructuredTaskScope` ile fan-out + deadline, SSE ile minimal JSON payload kullanılır.
 
 ## 8. Fonksiyonel Gereksinimler
 

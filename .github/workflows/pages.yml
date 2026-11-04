@@ -35,3 +35,4 @@ jobs:
           git add -A
           git commit -m "deploy: auto-publish FSP Terminal to GitHub Pages"
           git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+

@@ -4,6 +4,7 @@ import com.fsp.marketdata.domain.Bar;
 import com.fsp.shared.Symbol;
 import com.fsp.shared.Timeframe;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.jmolecules.architecture.hexagonal.SecondaryPort;
 
@@ -17,4 +18,8 @@ public interface MarketDataPort {
     Bar synthesizeClosedBar(Symbol symbol, Timeframe timeframe, long barIndex);
 
     default void refreshLivePricesFromTradingView() {}
+
+    default Map<String, Object> getSharedHotCacheSnapshot() {
+        return Map.of();
+    }
 }

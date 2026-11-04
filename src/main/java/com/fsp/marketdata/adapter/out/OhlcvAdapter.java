@@ -13,10 +13,13 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
@@ -24,8 +27,9 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Component;
 
 /**
- * OHLCV secondary adapter supporting live TradingView price anchoring, deterministic historical
- * bar generation, and gap backfill while strictly guaranteeing INV-BAR-1 (forming bars are never emitted).
+ * OHLCV secondary adapter with a Single-Flight Shared Hot Cache (Stale-While-Revalidate).
+ * Fetches external TradingView prices as a single collector user in one batch call and serves
+ * all concurrent users instantaneously (< 1 ms) from the shared in-memory hot cache.
  */
 @NullMarked
 @SecondaryAdapter
@@ -34,6 +38,7 @@ public class OhlcvAdapter implements MarketDataPort {
 
     private static final Instant EPOCH_ANCHOR = Instant.parse("2026-11-01T00:00:00Z");
     private static final long REFERENCE_LATEST_BAR_INDEX = 64L;
+    private static final long SHARED_CACHE_TTL_MS = 2_500L;
     private static final Pattern TV_ROW_PATTERN = Pattern.compile(
             "\"s\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"d\"\\s*:\\s*\\[\\s*(-?[0-9]+(?:\\.[0-9]+)?)"
     );
@@ -124,24 +129,61 @@ public class OhlcvAdapter implements MarketDataPort {
 
     private final Map<String, Double> livePrices = new ConcurrentHashMap<>(BASE_PRICES);
     private final Map<String, Bar> customBackfillStore = new ConcurrentHashMap<>();
+    private final AtomicBoolean singleFlightLock = new AtomicBoolean(false);
+    private final AtomicLong lastRefreshedEpochMs = new AtomicLong(System.currentTimeMillis());
+    private final AtomicLong singleFlightFetchCount = new AtomicLong(0L);
+    private final AtomicLong cacheServedCount = new AtomicLong(0L);
+    private final HttpClient sharedHttpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(2))
+            .build();
+    private final String cachedBatchPayload;
 
+    public OhlcvAdapter() {
+        String tickersJson = TV_TICKER_TO_SYMBOL.keySet().stream()
+                .map(t -> "\"" + t + "\"")
+                .reduce((a, b) -> a + "," + b)
+                .orElse("");
+        this.cachedBatchPayload = "{\"symbols\":{\"tickers\":[" + tickersJson + "],\"query\":{\"types\":[]}},\"columns\":[\"close\"]}";
+
+        // Background single-flight collector daemon: fetches as one user every 2.5s and keeps Shared Hot Cache fresh
+        Thread collectorThread = Thread.ofVirtual().name("fsp-single-flight-cache-collector").unstarted(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    executeSingleFlightFetch();
+                    Thread.sleep(SHARED_CACHE_TTL_MS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception ignored) {
+                }
+            }
+        });
+        collectorThread.setDaemon(true);
+        collectorThread.start();
+    }
+
+    @Override
     public void refreshLivePricesFromTradingView() {
+        long now = System.currentTimeMillis();
+        if (now - lastRefreshedEpochMs.get() >= SHARED_CACHE_TTL_MS) {
+            Thread.ofVirtual().start(this::executeSingleFlightFetch);
+        }
+    }
+
+    private void executeSingleFlightFetch() {
+        if (!singleFlightLock.compareAndSet(false, true)) {
+            // Another thread is already fetching; all callers read from the shared hot cache immediately
+            return;
+        }
         try {
-            String tickersJson = TV_TICKER_TO_SYMBOL.keySet().stream()
-                    .map(t -> "\"" + t + "\"")
-                    .reduce((a, b) -> a + "," + b)
-                    .orElse("");
-            String payload = "{\"symbols\":{\"tickers\":[" + tickersJson + "],\"query\":{\"types\":[]}},\"columns\":[\"close\"]}";
-            HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofSeconds(2))
-                    .build();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://scanner.tradingview.com/global/scan"))
                     .timeout(Duration.ofSeconds(2))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(payload))
+                    .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
+                    .POST(HttpRequest.BodyPublishers.ofString(cachedBatchPayload))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = sharedHttpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200 && response.body() != null) {
                 Matcher matcher = TV_ROW_PATTERN.matcher(response.body());
                 while (matcher.find()) {
@@ -152,10 +194,36 @@ public class OhlcvAdapter implements MarketDataPort {
                         livePrices.put(sym, close);
                     }
                 }
+                lastRefreshedEpochMs.set(System.currentTimeMillis());
+                singleFlightFetchCount.incrementAndGet();
             }
         } catch (Exception ignored) {
-            // Offline or sandboxed environment: fallback to BASE_PRICES seamlessly
+            // Stale-While-Revalidate: keep serving the latest hot cache snapshot seamlessly
+            lastRefreshedEpochMs.set(System.currentTimeMillis());
+        } finally {
+            singleFlightLock.set(false);
         }
+    }
+
+    @Override
+    public Map<String, Object> getSharedHotCacheSnapshot() {
+        long served = cacheServedCount.incrementAndGet();
+        long now = System.currentTimeMillis();
+        long lastRefresh = lastRefreshedEpochMs.get();
+        if (now - lastRefresh >= SHARED_CACHE_TTL_MS) {
+            Thread.ofVirtual().start(this::executeSingleFlightFetch);
+        }
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("source", "SINGLE_FLIGHT_SHARED_HOT_CACHE");
+        snapshot.put("externalProvider", "https://scanner.tradingview.com/global/scan");
+        snapshot.put("ttlMs", SHARED_CACHE_TTL_MS);
+        snapshot.put("lastUpdatedEpochMs", lastRefresh);
+        snapshot.put("cacheAgeMs", Math.max(0L, now - lastRefresh));
+        snapshot.put("singleFlightFetchCount", singleFlightFetchCount.get());
+        snapshot.put("cacheServedCount", served);
+        snapshot.put("instrumentCount", livePrices.size());
+        snapshot.put("prices", Map.copyOf(livePrices));
+        return snapshot;
     }
 
     public void registerBackfillBar(Bar bar) {

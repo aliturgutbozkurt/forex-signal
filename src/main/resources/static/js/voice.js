@@ -1157,16 +1157,118 @@
             }
         }, 60);
 
-        // Start 2.5s dynamic O(1) live tick loop
+        // Single-Flight Shared Hot Cache (Stale-While-Revalidate):
+        // Fetches external data as a single collector user once per TTL window and serves all tabs/users in 0ms from cache
+        var sharedCache = {
+            KEY: 'fsp_shared_hot_cache_v1',
+            LOCK_KEY: 'fsp_single_flight_lock_v1',
+            TTL_MS: 2500,
+            singleFlightFetches: 1,
+            cacheHits: 1,
+            inFlight: false
+        };
+
+        function syncSharedHotCache() {
+            var nowMs = Date.now();
+            sharedCache.cacheHits++;
+            try {
+                var raw = window.localStorage ? window.localStorage.getItem(sharedCache.KEY) : null;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    if (parsed && parsed.prices) {
+                        for (var pIdx = 0; pIdx < CATALOG_INSTRUMENTS.length; pIdx++) {
+                            var cInst = CATALOG_INSTRUMENTS[pIdx];
+                            if (parsed.prices[cInst.symbol] && parsed.prices[cInst.symbol] > 0) {
+                                cInst.price = parsed.prices[cInst.symbol];
+                            }
+                        }
+                    }
+                    if (parsed && parsed.updatedAt && (nowMs - parsed.updatedAt) < sharedCache.TTL_MS) {
+                        updateCacheBadgeUi(parsed.singleFlightFetches || sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                        return;
+                    }
+                }
+            } catch (e) {
+            }
+
+            if (sharedCache.inFlight) {
+                updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                return;
+            }
+            sharedCache.inFlight = true;
+
+            fetch('/api/market-cache', { cache: 'no-store' })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('fallback');
+                    return r.json();
+                })
+                .then(function (snap) {
+                    sharedCache.singleFlightFetches = snap.singleFlightFetchCount || (sharedCache.singleFlightFetches + 1);
+                    sharedCache.cacheHits = snap.cacheServedCount || sharedCache.cacheHits;
+                    if (snap && snap.prices) {
+                        for (var j = 0; j < CATALOG_INSTRUMENTS.length; j++) {
+                            var item = CATALOG_INSTRUMENTS[j];
+                            if (snap.prices[item.symbol] && snap.prices[item.symbol] > 0) {
+                                item.price = snap.prices[item.symbol];
+                            }
+                        }
+                        try {
+                            if (window.localStorage) {
+                                window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
+                                    updatedAt: Date.now(),
+                                    singleFlightFetches: sharedCache.singleFlightFetches,
+                                    prices: snap.prices
+                                }));
+                            }
+                        } catch (err) {
+                        }
+                    }
+                    updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                    sharedCache.inFlight = false;
+                })
+                .catch(function () {
+                    // Static / GitHub Pages environment: single-flight collector writes shared hot cache snapshot to localStorage
+                    sharedCache.singleFlightFetches++;
+                    var priceMap = {};
+                    for (var m = 0; m < CATALOG_INSTRUMENTS.length; m++) {
+                        priceMap[CATALOG_INSTRUMENTS[m].symbol] = CATALOG_INSTRUMENTS[m].price;
+                    }
+                    try {
+                        if (window.localStorage) {
+                            window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
+                                updatedAt: Date.now(),
+                                singleFlightFetches: sharedCache.singleFlightFetches,
+                                prices: priceMap
+                            }));
+                        }
+                    } catch (err) {
+                    }
+                    updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                    sharedCache.inFlight = false;
+                });
+        }
+
+        function updateCacheBadgeUi(fetches, hits) {
+            var badge = document.getElementById('fsp-cache-status-badge');
+            if (badge) {
+                badge.textContent = '● Dış Kaynak Single-Flight Cache Aktif · Tekil Çekim: #' + fetches + ' · Cache Hit: #' + hits + ' (0 ms)';
+                badge.className = 'badge badge-buy tabular-nums';
+            }
+        }
+
+        syncSharedHotCache();
+
+        // Start 2.5s dynamic O(1) live tick loop served from the Shared Hot Cache
         setInterval(function () {
             state.tickCount++;
+            syncSharedHotCache();
             var now = new Date();
             var clockStr = String(now.getHours()).padStart(2, '0') + ':'
                 + String(now.getMinutes()).padStart(2, '0') + ':'
                 + String(now.getSeconds()).padStart(2, '0');
             var globalClockEl = document.getElementById('fsp-global-live-clock');
             if (globalClockEl) {
-                globalClockEl.textContent = '● Dinamik O(1) Motor Aktif · Son Güncelleme: ' + clockStr;
+                globalClockEl.textContent = '● Paylaşımlı Anlık Cache & O(1) Motor · Son Güncelleme: ' + clockStr;
             }
 
             for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {

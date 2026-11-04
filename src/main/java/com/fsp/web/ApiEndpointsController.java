@@ -22,6 +22,7 @@ import java.util.Map;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -129,6 +130,12 @@ public class ApiEndpointsController {
     @GetMapping("/strategy")
     public StrategySummaryDto getStrategy() {
         return signalFacade.getActiveStrategy();
+    }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/market-cache")
+    public Map<String, Object> getSharedMarketCache() {
+        return marketDataFacade.getSharedHotCacheStatus();
     }
 
     @GetMapping("/auth/passkey/challenge")

@@ -228,6 +228,11 @@ public class MarketDataApplicationService implements MarketDataFacade {
     }
 
     @Override
+    public Map<String, Object> getSharedHotCacheStatus() {
+        return ohlcvAdapter.getSharedHotCacheSnapshot();
+    }
+
+    @Override
     public void setDegradedMode(boolean degraded, String reason) {
         boolean wasDegraded = this.manualDegraded;
         this.manualDegraded = degraded;

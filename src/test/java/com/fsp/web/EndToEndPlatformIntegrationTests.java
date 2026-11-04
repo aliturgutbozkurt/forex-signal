@@ -125,6 +125,11 @@ class EndToEndPlatformIntegrationTests {
                 .andExpect(jsonPath("$.metrics.totalTrades").isNumber())
                 .andExpect(jsonPath("$.monteCarlo.simulations").value(200));
 
+        mockMvc.perform(get("/api/market-cache"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.source").value("SINGLE_FLIGHT_SHARED_HOT_CACHE"))
+                .andExpect(jsonPath("$.prices.XAUUSD").isNumber());
+
         mockMvc.perform(get("/api/auth/passkey/challenge").param("user", "aliturgutbozkurt"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.challenge").isNotEmpty());
