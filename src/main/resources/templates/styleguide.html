@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FSP Design System — OKLCH Token &amp; Bileşen Rehberi</title>
+    <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div class="legal-banner" role="note">
+    ⚠️ <strong th:text="#{app.legal.disclaimer}">Bu sistem karar destek aracıdır, yatırım tavsiyesi değildir.</strong>
+</div>
+
+<header class="app-header">
+    <h1>FSP Design System (OKLCH · Glassmorphism · Tabular Typography)</h1>
+    <a href="/" class="btn">← Dashboard'a Dön</a>
+</header>
+
+<main class="container-main">
+    <section class="glass-card">
+        <h2>1. Semantik Renk Token'ları (OKLCH)</h2>
+        <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;">
+            <div class="glass-card signal-card-buy">
+                <span class="badge badge-buy">AL · BUY</span>
+                <p class="tabular-nums" style="margin-top:0.5rem;"><code>oklch(0.78 0.17 155)</code> — Zümrüt</p>
+            </div>
+            <div class="glass-card signal-card-sell">
+                <span class="badge badge-sell">SAT · SELL</span>
+                <p class="tabular-nums" style="margin-top:0.5rem;"><code>oklch(0.68 0.2 25)</code> — Mercan</p>
+            </div>
+            <div class="glass-card">
+                <span class="badge badge-degraded">DEGRADED · EXPERIMENTAL</span>
+                <p class="tabular-nums" style="margin-top:0.5rem;"><code>oklch(0.75 0.18 55)</code> — Amber Uyarı</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <h2>2. Ses UX Test Paneli (Web Audio + Web Speech API)</h2>
+        <div style="display:flex;gap:1rem;margin-top:1rem;">
+            <button type="button" class="btn btn-buy" onclick="window.FspVoice && window.FspVoice.testBuyVoice()">
+                🔊 AL Sesi Test Et (Yükselen Çift Ton + Ses A)
+            </button>
+            <button type="button" class="btn btn-sell" onclick="window.FspVoice && window.FspVoice.testSellVoice()">
+                🔊 SAT Sesi Test Et (Alçalan Çift Ton + Ses B)
+            </button>
+        </div>
+    </section>
+</main>
+<script src="/js/voice.js"></script>
+</body>
+</html>
+

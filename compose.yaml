@@ -1,0 +1,33 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg18
+    container_name: fsp-timescaledb
+    environment:
+      POSTGRES_DB: fsp
+      POSTGRES_USER: fsp
+      POSTGRES_PASSWORD: fsp_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - fsp_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fsp -d fsp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: fsp-valkey
+    ports:
+      - "6379:6379"
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  fsp_pgdata:
+

@@ -2,8 +2,8 @@
 
 | Alan | Değer |
 |---|---|
-| Durum | **Draft → Review** |
-| Sürüm | 0.1.0 |
+| Durum | **Approved** |
+| Sürüm | 1.0.0 |
 | Tarih | 2026-11-04 |
 | Sahip | @aliturgutbozkurt |
 | Yöntem | Spec-Driven Development (SDD) + TLA+ Planning-Driven Development |
@@ -295,7 +295,7 @@ OWASP ASVS L2, CSP nonce, rate limiting, secrets → env/Vault, KVKK uyumlu kiş
 5. **Performans fitness**: JMH + Gatling eşikleri CI'da.
 6. Definition of Done: spec güncel, test yeşil, TLC yeşil, ADR (gerekirse), dokümantasyon (Modulith `Documenter`).
 
-## 13. Açık Sorular
-- Q1: TradingView scanner'ın ToS riski → üretimde ticari kullanım öncesi lisanslı veri sağlayıcı (ör. Polygon/Twelve Data/Matriks) değerlendirilmeli.
-- Q2: BIST gerçek zamanlı veri lisansı (Borsa İstanbul 15 dk gecikme kuralı) → UI'da gecikme rozeti.
-- Q3: Web Push için VAPID anahtar yönetimi.
+## 13. Karara Bağlanan Açık Sorular (Sign-off)
+- **Q1 (Veri sağlayıcı ToS):** `IndicatorSnapshotPort` ve `MarketDataPort` Hexagonal port olarak soyutlandı (ADR-0002). Geliştirme/kişisel kullanımda TradingView Scanner + Yahoo/OHLCV hibrit adaptörü kullanılır; ticari dağıtımda yalnızca `application.yml` profili ile lisanslı sağlayıcıya (Twelve Data / Polygon / Matriks) geçilir.
+- **Q2 (BIST gerçek zamanlı veri lisansı):** BIST enstrümanları için veri kaynağı gecikmeli modda (`delayed=true`, 15 dk) ise UI'da enstrüman rozeti yanında `15dk Gecikmeli` uyarısı zorunlu olarak gösterilir.
+- **Q3 (Web Push VAPID):** VAPID public/private anahtar çifti ortam değişkenlerinden (`FSP_VAPID_PUBLIC_KEY`, `FSP_VAPID_PRIVATE_KEY`) okunur; geliştirme ortamında deterministik ephemeral anahtar üretilir.

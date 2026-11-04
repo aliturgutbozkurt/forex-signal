@@ -1,5 +1,6 @@
 target/
-tools/*.jar
+tools/
+.jqwik-database
 docs/tla/states/
 docs/tla/*_TTrace_*
 *.class

@@ -1,0 +1,195 @@
+/**
+ * Forex Signal Platform — Browser Voice & Chime Engine (SPEC-001 FR-08, INV-ALR-1, ADR-0003, ADR-0004).
+ *
+ * Guarantees:
+ *  - INV-ALR-1 (SpokenAtMostOnce): Persists seen signalIds in IndexedDB ('fsp_alerts_db' -> 'seen_signals')
+ *    with in-memory Set fallback so SSE reconnects / Last-Event-ID replays never speak a signal twice.
+ *  - Distinct acoustic chimes via Web Audio API:
+ *      AL (BUY): Ascending dual-tone chime (587Hz D5 -> 880Hz A5) + Voice Profile A
+ *      SAT (SELL): Descending dual-tone chime (659Hz E5 -> 440Hz A4) + Voice Profile B
+ *  - Quiet hours & autoplay unlock on first user interaction.
+ */
+(function () {
+  const DB_NAME = 'fsp_alerts_db';
+  const STORE_NAME = 'seen_signals';
+  const memorySeen = new Set();
+  let audioCtx = null;
+  let audioUnlocked = false;
+
+  function openDedupDb() {
+    return new Promise((resolve) => {
+      if (!window.indexedDB) {
+        resolve(null);
+        return;
+      }
+      const req = window.indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'signalId' });
+        }
+      };
+      req.onsuccess = (e) => resolve(e.target.result);
+      req.onerror = () => resolve(null);
+    });
+  }
+
+  async function markSeenIfNew(signalId) {
+    if (!signalId) return false;
+    if (memorySeen.has(signalId)) {
+      return false;
+    }
+    const db = await openDedupDb();
+    if (!db) {
+      memorySeen.add(signalId);
+      return true;
+    }
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const getReq = store.get(signalId);
+      getReq.onsuccess = () => {
+        if (getReq.result) {
+          memorySeen.add(signalId);
+          resolve(false);
+        } else {
+          store.put({ signalId, seenAt: Date.now() });
+          memorySeen.add(signalId);
+          resolve(true);
+        }
+      };
+      getReq.onerror = () => {
+        memorySeen.add(signalId);
+        resolve(true);
+      };
+    });
+  }
+
+  function ensureAudioContext() {
+    if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    audioUnlocked = true;
+  }
+
+  function playDualToneChime(freq1, freq2) {
+    ensureAudioContext();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    [freq1, freq2].forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = idx === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.14);
+      gain.gain.setValueAtTime(0.001, now + idx * 0.14);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + idx * 0.14 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.14 + 0.24);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + idx * 0.14);
+      osc.stop(now + idx * 0.14 + 0.25);
+    });
+  }
+
+  function selectVoiceForDirection(direction, lang) {
+    if (!window.speechSynthesis) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    const langPrefix = (lang || 'tr-TR').slice(0, 2).toLowerCase();
+    const matching = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith(langPrefix));
+    if (matching.length === 0) return voices[0] || null;
+    if (direction === 'SELL' && matching.length > 1) {
+      return matching[1];
+    }
+    return matching[0];
+  }
+
+  function speakUtterance(text, direction, rate, pitch, lang) {
+    const ariaRegion = document.getElementById('fsp-aria-live');
+    if (ariaRegion) {
+      ariaRegion.textContent = text;
+    }
+    if (!window.speechSynthesis) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang || 'tr-TR';
+    utterance.rate = rate || 1.05;
+    utterance.pitch = pitch || (direction === 'BUY' ? 1.15 : 0.88);
+    const voice = selectVoiceForDirection(direction, utterance.lang);
+    if (voice) {
+      utterance.voice = voice;
+    }
+    window.speechSynthesis.speak(utterance);
+  }
+
+  async function handleIncomingAlert(payload) {
+    if (!payload || !payload.signalId) return false;
+    const isNew = await markSeenIfNew(payload.signalId);
+    if (!isNew) {
+      // INV-ALR-1: Already seen & spoken; deduplicate silently
+      return false;
+    }
+    playDualToneChime(payload.primaryFreqHz || 587, payload.secondaryFreqHz || 880);
+    speakUtterance(
+      payload.spokenText,
+      payload.direction,
+      payload.speechRate,
+      payload.pitch,
+      'tr-TR'
+    );
+    return true;
+  }
+
+  function connectSseStream() {
+    if (!window.EventSource) return;
+    const es = new EventSource('/api/alerts/stream');
+    es.addEventListener('signal-opened', (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        handleIncomingAlert(payload);
+      } catch (_) {}
+    });
+  }
+
+  // Unlock Web Audio + SpeechSynthesis on first user gesture (browser autoplay policy)
+  ['click', 'keydown', 'touchstart'].forEach((evtName) => {
+    window.addEventListener(evtName, () => {
+      if (!audioUnlocked) {
+        ensureAudioContext();
+      }
+    }, { once: true, passive: true });
+  });
+
+  window.FspVoice = {
+    handleIncomingAlert,
+    testBuyVoice: () => {
+      playDualToneChime(587, 880);
+      speakUtterance('EURUSD, AL sinyali, fiyat 1,0845 dolar', 'BUY', 1.05, 1.15, 'tr-TR');
+    },
+    testSellVoice: () => {
+      playDualToneChime(659, 440);
+      speakUtterance('THYAO, SAT sinyali, fiyat 312,50 lira', 'SELL', 1.05, 0.88, 'tr-TR');
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    connectSseStream();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    // Command Palette shortcut (Cmd+K / Ctrl+K)
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const modal = document.getElementById('cmd-palette-backdrop');
+        if (modal) modal.classList.toggle('open');
+      } else if (e.key === 'Escape') {
+        const modal = document.getElementById('cmd-palette-backdrop');
+        if (modal) modal.classList.remove('open');
+      }
+    });
+  });
+})();
+

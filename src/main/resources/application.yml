@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: forex-signal-platform
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${FSP_DB_URL:jdbc:h2:mem:fspdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1}
+    username: ${FSP_DB_USER:sa}
+    password: ${FSP_DB_PASSWORD:}
+  sql:
+    init:
+      mode: always
+  modulith:
+    events:
+      jdbc:
+        schema-initialization:
+          enabled: true
+      republish-outstanding-events-on-restart: true
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  web:
+    locale: tr_TR
+    locale-resolver: fixed
+
+server:
+  port: ${PORT:8080}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,modulith
+  endpoint:
+    health:
+      show-details: always
+
+fsp:
+  scanner:
+    enabled: ${FSP_SCANNER_ENABLED:false}
+    base-url: https://scanner.tradingview.com
+    timeout-ms: 1500
+  ai:
+    provider: ${FSP_AI_PROVIDER:deterministic-xai}
+    timeout-ms: 800
+  security:
+    vapid-public-key: ${FSP_VAPID_PUBLIC_KEY:BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U}
+

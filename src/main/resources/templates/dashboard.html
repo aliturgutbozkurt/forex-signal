@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="#{app.title}">Forex Sinyal Platformu (FSP)</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div class="legal-banner" role="note">
+    ⚠️ <strong th:text="#{app.legal.disclaimer}">Bu sistem karar destek aracıdır, yatırım tavsiyesi değildir.</strong>
+</div>
+
+<div id="fsp-aria-live" aria-live="polite" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
+
+<header class="app-header">
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <h1 style="font-size:1.15rem;font-weight:700;letter-spacing:-0.02em;">FSP · Ultra-Low Latency Signal Terminal</h1>
+        <span th:if="${degradedMode}" class="badge badge-degraded">⚠️ Veri Kaynağı: Degraded (Kendi Motorumuz Aktif)</span>
+        <span th:unless="${degradedMode}" class="badge badge-buy">● Hibrit Motor Canlı</span>
+    </div>
+    <nav class="app-nav">
+        <a href="/" class="active" th:text="#{nav.dashboard}">Canlı Sinyal Akışı</a>
+        <a href="/instrument/THYAO">THYAO Grafik</a>
+        <a href="/instrument/EURUSD">EURUSD Grafik</a>
+        <a href="/styleguide" th:text="#{nav.styleguide}">Tasarım Sistemi</a>
+        <button type="button" class="btn btn-buy" onclick="window.FspVoice && window.FspVoice.testBuyVoice()" th:text="#{voice.test.buy}">AL Sesi Test Et</button>
+        <button type="button" class="btn btn-sell" onclick="window.FspVoice && window.FspVoice.testSellVoice()" th:text="#{voice.test.sell}">SAT Sesi Test Et</button>
+    </nav>
+</header>
+
+<main class="container-main">
+    <!-- Top KPI & Walk-Forward Transparency Bar -->
+    <section class="glass-card" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+        <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Strateji &amp; Kalite Kapısı (§9)</div>
+            <div style="font-weight:700;font-size:1rem;">
+                <span th:text="${strategy.name()}">FSP Multi-Regime Confluence</span>
+                <span class="badge tabular-nums" th:text="'v' + ${strategy.version()}">v1</span>
+                <span class="badge" th:classappend="${metrics.experimental()} ? 'badge-degraded' : 'badge-buy'"
+                      th:text="${metrics.qualityBadge()}">EXPERIMENTAL</span>
+            </div>
+        </div>
+        <div class="tabular-nums" style="display:flex;gap:2rem;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Win Rate (TP1)</div>
+                <strong style="font-size:1.1rem;" th:text="${metrics.winRatePct()} + '%'">62.5%</strong>
+            </div>
+            <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Profit Factor</div>
+                <strong style="font-size:1.1rem;" th:text="${metrics.profitFactor()}">2.15</strong>
+            </div>
+            <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Expectancy</div>
+                <strong style="font-size:1.1rem;" th:text="${metrics.expectancyR()} + 'R'">0.58R</strong>
+            </div>
+            <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Max Drawdown</div>
+                <strong style="font-size:1.1rem;" th:text="${metrics.maxDrawdownPct()} + '%'">4.2%</strong>
+            </div>
+            <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">Örneklem</div>
+                <strong style="font-size:1.1rem;" th:text="${metrics.totalTrades()} + ' işlem'">24 işlem</strong>
+            </div>
+        </div>
+    </section>
+
+    <div class="grid-dashboard">
+        <!-- Left Column: Live Signal Stream -->
+        <section>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;">
+                <h2 style="font-size:1.05rem;">Canlı AL / SAT Sinyalleri (No-Repaint, Kapanmış Bar)</h2>
+                <span style="font-size:0.8rem;color:var(--text-muted);">Komut Paleti: <code>⌘K</code></span>
+            </div>
+            <div class="signal-grid" id="live-signal-list">
+                <article th:each="sig : ${signals}"
+                         class="glass-card"
+                         th:classappend="${sig.direction().name() == 'BUY'} ? 'signal-card-buy' : 'signal-card-sell'">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <div>
+                            <a th:href="@{'/instrument/' + ${sig.symbol().value()}}"
+                               style="color:var(--text-primary);font-weight:700;font-size:1.1rem;text-decoration:none;"
+                               th:text="${sig.symbol().value()}">EURUSD</a>
+                            <span class="badge tabular-nums" th:text="${sig.timeframe().label()}">15m</span>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${sig.direction().name() == 'BUY'} ? 'badge-buy' : 'badge-sell'"
+                              th:text="${sig.direction().labelTr()} + ' · %' + ${sig.confidence()}">AL · %82</span>
+                    </div>
+
+                    <div class="tabular-nums" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;font-size:0.82rem;margin:0.65rem 0;">
+                        <div>
+                            <span style="color:var(--text-muted);display:block;">Giriş</span>
+                            <strong th:text="${sig.entry().amount().toPlainString()} + ' ' + ${sig.currency().symbol()}">1.0845 $</strong>
+                        </div>
+                        <div>
+                            <span style="color:var(--text-muted);display:block;">Stop (SL)</span>
+                            <strong th:text="${sig.stopLoss().amount().toPlainString()}">1.0790</strong>
+                        </div>
+                        <div>
+                            <span style="color:var(--text-muted);display:block;">Hedef (TP1)</span>
+                            <strong th:text="${sig.tp1().amount().toPlainString()} + ' (' + ${sig.riskRewardTp1()} + 'R)'">1.0928 (1.5R)</strong>
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.78rem;color:var(--text-secondary);margin-top:0.5rem;"
+                         th:if="${sig.explanation() != null}"
+                         th:text="${sig.explanation()}">
+                        AI XAI Açıklaması...
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Right Column: Instrument Heatmap, Watchlist & AI Query -->
+        <aside style="display:grid;gap:1.25rem;align-content:start;">
+            <div class="glass-card">
+                <h3 style="font-size:0.95rem;margin-bottom:0.75rem;">AI Doğal Dil Sorgu (Tool Calling)</h3>
+                <form action="/" method="get" style="display:flex;gap:0.5rem;">
+                    <input type="text" name="q" th:value="${aiQuery}"
+                           placeholder="Örn: Bugün BIST'te en güçlü AL sinyalleri?"
+                           style="flex:1;padding:0.5rem 0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-canvas);color:var(--text-primary);"/>
+                    <button type="submit" class="btn">Sor</button>
+                </form>
+                <p th:if="${aiAnswer != null}"
+                   style="margin-top:0.75rem;font-size:0.83rem;color:var(--text-secondary);"
+                   th:text="${aiAnswer.answerTr()}"></p>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="font-size:0.95rem;margin-bottom:0.75rem;">Enstrüman Kataloğu &amp; Seans Durumu</h3>
+                <table class="table-clean tabular-nums">
+                    <thead>
+                    <tr>
+                        <th>Sembol</th>
+                        <th>Sınıf</th>
+                        <th>Birim</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="inst : ${instruments}">
+                        <td>
+                            <a th:href="@{'/instrument/' + ${inst.symbol().value()}}"
+                               style="color:var(--text-primary);font-weight:600;text-decoration:none;"
+                               th:text="${inst.symbol().value()}">THYAO</a>
+                            <span th:if="${inst.delayedFeed()}" class="badge badge-degraded" style="font-size:0.65rem;">15dk Gecikmeli</span>
+                        </td>
+                        <td th:text="${inst.assetClass().displayNameTr()}">BIST Hisseleri</td>
+                        <td th:text="${inst.quoteCurrency().code()}">TRY</td>
+                        <td>
+                            <span th:text="${inst.sessionOpen()} ? 'Seans Açık' : 'Seans Kapalı'"
+                                  style="font-size:0.75rem;color:var(--text-secondary);">Seans Açık</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<!-- Command Palette (⌘K) -->
+<div id="cmd-palette-backdrop" class="cmd-palette-backdrop" role="dialog" aria-modal="true" aria-label="Komut Paleti">
+    <div class="cmd-palette">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <strong>Hızlı Enstrüman &amp; Komut Arama (⌘K)</strong>
+            <button type="button" class="btn" onclick="document.getElementById('cmd-palette-backdrop').classList.remove('open')">ESC</button>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <a th:each="inst : ${instruments}"
+               th:href="@{'/instrument/' + ${inst.symbol().value()}}"
+               class="btn tabular-nums"
+               th:text="${inst.symbol().value()} + ' (' + ${inst.quoteCurrency().code()} + ')'">EURUSD</a>
+        </div>
+    </div>
+</div>
+
+<script src="/js/voice.js"></script>
+</body>
+</html>
+

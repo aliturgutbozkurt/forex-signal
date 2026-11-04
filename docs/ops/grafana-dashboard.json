@@ -1,0 +1,39 @@
+{
+  "title": "Forex Signal Platform (FSP) — Low-Latency & Modulith Observability",
+  "uid": "fsp-observability-v1",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Bar Closed -> SignalOpened Latency (p99 < 50ms)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(fsp_signal_pipeline_duration_seconds_bucket[1m])) by (le))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "TradingView Scanner Circuit Breaker State",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "resilience4j_circuitbreaker_state{name=\"tradingViewScanner\"}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Published Signals by Direction & Regime",
+      "type": "barchart",
+      "targets": [
+        {
+          "expr": "sum by (direction, regime) (fsp_signals_opened_total)"
+        }
+      ]
+    }
+  ]
+}
+

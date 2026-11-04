@@ -1,0 +1,17 @@
+{
+  "name": "Forex Signal Platform (FSP)",
+  "short_name": "FSP Signals",
+  "description": "Multi-asset AL/SAT signal platform with real-time voice alerts and XAI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d14",
+  "theme_color": "#00d48a",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
+
