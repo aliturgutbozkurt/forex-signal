@@ -70,7 +70,17 @@ class EndToEndPlatformIntegrationTests {
         mockMvc.perform(get("/instrument/THYAO").param("tf", "H1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("15dk Gecikmeli")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Lightweight Charts")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("tradingview_advanced_chart")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1m (M1)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("5m (M5)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("15m (M15)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("30m (M30)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1h (H1)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("2h (H2)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("4h (H4)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1D (D1)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1W (W1)")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("1M (MN)")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Karar")))
                 .andExpect(content().string(org.hamcrest.Matchers.anyOf(
                         org.hamcrest.Matchers.containsString(">AL<"),

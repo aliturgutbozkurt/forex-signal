@@ -16,5 +16,13 @@ public record InstrumentDto(
         ZoneId timezone,
         boolean delayedFeed,
         boolean sessionOpen
-) {}
+) {
+    public String tradingViewSymbol() {
+        return switch (symbol.value()) {
+            case "SPX500" -> "FOREXCOM:SPXUSD";
+            case "NDX100" -> "NASDAQ:NDX";
+            default -> exchange + ":" + symbol.value();
+        };
+    }
+}
 

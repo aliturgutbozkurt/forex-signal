@@ -154,20 +154,33 @@ public class OhlcvAdapter implements MarketDataPort {
 
     public Bar synthesizeClosedBar(Symbol symbol, Timeframe timeframe, long barIndex) {
         double targetLatestClose = livePrices.getOrDefault(symbol.value(), 100.0);
-        int symSeed = Math.abs(symbol.value().hashCode() % 97);
+        int tfShift = (timeframe.ordinal() - Timeframe.M15.ordinal()) * 13;
+        int seed = Math.abs(symbol.value().hashCode() % 97) + tfShift;
+        double tfAmp = switch (timeframe) {
+            case M1 -> 0.35;
+            case M5 -> 0.65;
+            case M15 -> 1.00;
+            case M30 -> 1.25;
+            case H1 -> 1.55;
+            case H2 -> 1.85;
+            case H4 -> 2.20;
+            case D1 -> 2.80;
+            case W1 -> 3.60;
+            case MN -> 4.50;
+        };
 
         // Normalize linear scale so barIndex == 64 closes at targetLatestClose while preserving all indicator ratios
-        double refFactorAt64 = rawFactor(symSeed, REFERENCE_LATEST_BAR_INDEX);
+        double refFactorAt64 = rawFactor(seed, tfAmp, REFERENCE_LATEST_BAR_INDEX);
         double scale = targetLatestClose / refFactorAt64;
 
-        double wave = Math.sin((barIndex + symSeed) * 0.18) * 0.015
-                + Math.cos((barIndex + symSeed) * 0.05) * 0.022;
-        double drift = (barIndex * 0.0006) * ((symSeed % 2 == 0) ? 1.0 : -0.5);
+        double wave = (Math.sin((barIndex + seed) * 0.18) * 0.015
+                + Math.cos((barIndex + seed) * 0.05) * 0.022) * tfAmp;
+        double drift = (barIndex * 0.0006 * tfAmp) * ((seed % 2 == 0) ? 1.0 : -0.5);
         double openFactor = Math.max(0.1, 1.0 + wave + drift);
-        double deltaFactor = Math.sin((barIndex + symSeed) * 0.37) * 0.006;
+        double deltaFactor = Math.sin((barIndex + seed) * 0.37) * 0.006 * tfAmp;
         double closeFactor = Math.max(0.1, openFactor + deltaFactor);
-        double highFactor = Math.max(openFactor, closeFactor) + Math.abs(deltaFactor) * 0.65 + 0.0015;
-        double lowFactor = Math.max(0.05, Math.min(openFactor, closeFactor) - Math.abs(deltaFactor) * 0.55 - 0.0012);
+        double highFactor = Math.max(openFactor, closeFactor) + Math.abs(deltaFactor) * 0.65 + 0.0015 * tfAmp;
+        double lowFactor = Math.max(0.05, Math.min(openFactor, closeFactor) - Math.abs(deltaFactor) * 0.55 - 0.0012 * tfAmp);
 
         int decimals = decimalsForSymbol(symbol.value());
         double open = round(openFactor * scale, decimals);
@@ -175,21 +188,22 @@ public class OhlcvAdapter implements MarketDataPort {
         double high = Math.max(Math.max(open, close), round(highFactor * scale, decimals));
         double low = Math.min(Math.min(open, close), round(lowFactor * scale, decimals));
 
-        double volume = Math.round(10_000.0 + ((barIndex * 37 + symSeed * 101) % 15_000)
-                * ((barIndex % 7 == 0) ? 1.85 : 1.0));
+        double volume = Math.round((10_000.0 + ((barIndex * 37 + Math.abs(seed) * 101) % 15_000)
+                * ((barIndex % 7 == 0) ? 1.85 : 1.0)) * tfAmp);
 
         long stepSec = timeframe.duration().toSeconds();
-        Instant openTime = EPOCH_ANCHOR.plusSeconds(barIndex * stepSec);
+        Instant latestAnchor = Instant.parse("2026-11-04T18:00:00Z");
+        Instant openTime = latestAnchor.minusSeconds((REFERENCE_LATEST_BAR_INDEX - barIndex) * stepSec);
         Instant closeTime = openTime.plusSeconds(stepSec);
         return new Bar(symbol, timeframe, barIndex, openTime, closeTime, open, high, low, close, volume, true);
     }
 
-    private static double rawFactor(int symSeed, long barIndex) {
-        double wave = Math.sin((barIndex + symSeed) * 0.18) * 0.015
-                + Math.cos((barIndex + symSeed) * 0.05) * 0.022;
-        double drift = (barIndex * 0.0006) * ((symSeed % 2 == 0) ? 1.0 : -0.5);
+    private static double rawFactor(int seed, double tfAmp, long barIndex) {
+        double wave = (Math.sin((barIndex + seed) * 0.18) * 0.015
+                + Math.cos((barIndex + seed) * 0.05) * 0.022) * tfAmp;
+        double drift = (barIndex * 0.0006 * tfAmp) * ((seed % 2 == 0) ? 1.0 : -0.5);
         double openFactor = Math.max(0.1, 1.0 + wave + drift);
-        double deltaFactor = Math.sin((barIndex + symSeed) * 0.37) * 0.006;
+        double deltaFactor = Math.sin((barIndex + seed) * 0.37) * 0.006 * tfAmp;
         return Math.max(0.1, openFactor + deltaFactor);
     }
 

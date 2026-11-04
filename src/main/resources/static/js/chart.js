@@ -1,6 +1,57 @@
 (function () {
     'use strict';
 
+    var TV_INTERVAL_MAP = {
+        'M1': '1',
+        'M5': '5',
+        'M15': '15',
+        'M30': '30',
+        'H1': '60',
+        'H2': '120',
+        'H4': '240',
+        'D1': 'D',
+        'W1': 'W',
+        'MN': 'M'
+    };
+
+    var STEP_MS_MAP = {
+        'M1': 60 * 1000,
+        'M5': 5 * 60 * 1000,
+        'M15': 15 * 60 * 1000,
+        'M30': 30 * 60 * 1000,
+        'H1': 60 * 60 * 1000,
+        'H2': 2 * 60 * 60 * 1000,
+        'H4': 4 * 60 * 60 * 1000,
+        'D1': 24 * 60 * 60 * 1000,
+        'W1': 7 * 24 * 60 * 60 * 1000,
+        'MN': 30 * 24 * 60 * 60 * 1000
+    };
+
+    var TF_AMP_MAP = {
+        'M1': 0.35,
+        'M5': 0.65,
+        'M15': 1.00,
+        'M30': 1.25,
+        'H1': 1.55,
+        'H2': 1.85,
+        'H4': 2.20,
+        'D1': 2.80,
+        'W1': 3.60,
+        'MN': 4.50
+    };
+
+    function resolveTradingViewSymbol(meta) {
+        var sym = (meta && meta.symbol) ? meta.symbol : 'XAUUSD';
+        var ex = (meta && meta.exchange) ? meta.exchange : 'OANDA';
+        if (sym === 'SPX500') return 'FOREXCOM:SPXUSD';
+        if (sym === 'NDX100') return 'NASDAQ:NDX';
+        return ex + ':' + sym;
+    }
+
+    function resolveTradingViewInterval(tf) {
+        return TV_INTERVAL_MAP[tf] || '15';
+    }
+
     function computeEmaSeries(bars, period) {
         var result = [];
         if (!bars || bars.length === 0) return result;
@@ -44,40 +95,218 @@
         if (isNaN(d.getTime())) return String(isoStr);
         var day = String(d.getUTCDate()).padStart(2, '0');
         var mon = String(d.getUTCMonth() + 1).padStart(2, '0');
+        var yr = String(d.getUTCFullYear()).slice(-2);
         var hh = String(d.getUTCHours()).padStart(2, '0');
         var mm = String(d.getUTCMinutes()).padStart(2, '0');
-        if (tf === 'D1') {
-            return day + '.' + mon;
+        if (tf === 'D1' || tf === 'W1' || tf === 'MN') {
+            return day + '.' + mon + '.' + yr;
         }
         return day + '.' + mon + ' ' + hh + ':' + mm;
     }
 
-    function initChart() {
-        var canvas = document.getElementById('fsp-candles-canvas');
-        if (!canvas) return;
-
+    function prepareTimeframeBars(meta) {
+        var tf = (meta && meta.timeframe) ? meta.timeframe : 'M15';
         var rawBars = window.FSP_BARS_DATA || [];
-        var meta = window.FSP_CHART_META || {};
-        if (!rawBars || rawBars.length === 0) {
-            var baseClose = meta.close && meta.close > 0 ? meta.close : 100.0;
-            rawBars = [];
-            var nowMs = Date.now();
-            var stepMs = meta.timeframe === 'D1' ? 86400000 : (meta.timeframe === 'H4' ? 14400000 : (meta.timeframe === 'H1' ? 3600000 : 900000));
-            for (var fb = 0; fb < 65; fb++) {
-                var w = Math.sin((fb + 17) * 0.18) * 0.012 + Math.cos((fb + 17) * 0.05) * 0.018;
-                var d = ((fb - 64) * 0.0005);
-                var o = baseClose * (1.0 + w + d - Math.sin((64 + 17) * 0.18) * 0.012 - Math.cos((64 + 17) * 0.05) * 0.018);
-                var dl = Math.sin((fb + 17) * 0.37) * (baseClose * 0.004);
-                var c = fb === 64 ? baseClose : (o + dl);
-                var h = Math.max(o, c) + Math.abs(dl) * 0.65 + baseClose * 0.0012;
-                var l = Math.min(o, c) - Math.abs(dl) * 0.55 - baseClose * 0.0010;
-                var ct = new Date(nowMs - (64 - fb) * stepMs).toISOString();
-                rawBars.push({ barIndex: fb, openTime: ct, closeTime: ct, open: o, high: h, low: l, close: c, volume: 12000 + ((fb * 731) % 9000) });
-            }
+        var stepMs = STEP_MS_MAP[tf] || 900000;
+        var amp = TF_AMP_MAP[tf] || 1.0;
+        var baseClose = (meta && meta.close && meta.close > 0)
+            ? meta.close
+            : (rawBars.length > 0 ? rawBars[rawBars.length - 1].close : 100.0);
+        var sym = (meta && meta.symbol) ? meta.symbol : 'XAUUSD';
+        var decimals = detectDecimals(baseClose, sym);
+        var mult = Math.pow(10, decimals);
+
+        var tfSeed = 0;
+        for (var s = 0; s < sym.length; s++) tfSeed += sym.charCodeAt(s) * (s + 3);
+        for (var c = 0; c < tf.length; c++) tfSeed += tf.charCodeAt(c) * (c + 11) * 17;
+
+        var nowAligned = Math.floor(Date.now() / stepMs) * stepMs;
+        var generated = [];
+
+        function rawFactorAt(idx) {
+            var w = (Math.sin((idx + tfSeed) * 0.19) * 0.008 + Math.cos((idx + tfSeed) * 0.06) * 0.012) * amp;
+            var d = ((idx - 64) * 0.00025 * amp) * ((tfSeed % 2 === 0) ? 1.0 : -0.6);
+            var oF = Math.max(0.1, 1.0 + w + d);
+            var dF = Math.sin((idx + tfSeed) * 0.39) * 0.0045 * amp;
+            return Math.max(0.1, oF + dF);
         }
 
+        var ref64 = rawFactorAt(64);
+        var scale = baseClose / ref64;
+
+        for (var i = 0; i < 65; i++) {
+            var w = (Math.sin((i + tfSeed) * 0.19) * 0.008 + Math.cos((i + tfSeed) * 0.06) * 0.012) * amp;
+            var d = ((i - 64) * 0.00025 * amp) * ((tfSeed % 2 === 0) ? 1.0 : -0.6);
+            var oF = Math.max(0.1, 1.0 + w + d);
+            var dF = Math.sin((i + tfSeed) * 0.39) * 0.0045 * amp;
+            var cF = Math.max(0.1, oF + dF);
+            var hF = Math.max(oF, cF) + Math.abs(dF) * 0.65 + 0.0012 * amp;
+            var lF = Math.max(0.05, Math.min(oF, cF) - Math.abs(dF) * 0.55 - 0.0010 * amp);
+
+            var open = Math.round(oF * scale * mult) / mult;
+            var close = (i === 64) ? Math.round(baseClose * mult) / mult : Math.round(cF * scale * mult) / mult;
+            var high = Math.max(open, close, Math.round(hF * scale * mult) / mult);
+            var low = Math.min(open, close, Math.round(lF * scale * mult) / mult);
+            var vol = Math.round((10000 + ((i * 37 + tfSeed * 101) % 15000) * ((i % 7 === 0) ? 1.85 : 1.0)) * amp);
+            var openMs = nowAligned - (65 - i) * stepMs;
+            var closeMs = openMs + stepMs;
+
+            generated.push({
+                barIndex: i,
+                timeSec: Math.floor(closeMs / 1000),
+                openTime: new Date(openMs).toISOString(),
+                closeTime: new Date(closeMs).toISOString(),
+                open: open,
+                high: high,
+                low: low,
+                close: close,
+                volume: vol
+            });
+        }
+        return generated;
+    }
+
+    function initTradingViewPrimaryChart(meta, bars) {
+        var container = document.getElementById('tradingview_advanced_chart');
+        if (!container) return;
+
+        var tvSymbol = resolveTradingViewSymbol(meta);
+        var tvInterval = resolveTradingViewInterval(meta.timeframe || 'M15');
+
+        // 1. Official TradingView Advanced Real-Time Widget (tv.js)
+        if (window.TradingView && typeof window.TradingView.widget === 'function') {
+            new window.TradingView.widget({
+                autosize: true,
+                symbol: tvSymbol,
+                interval: tvInterval,
+                timezone: 'Europe/Istanbul',
+                theme: 'light',
+                style: '1',
+                locale: 'tr',
+                toolbar_bg: '#f8fafc',
+                enable_publishing: false,
+                withdateranges: true,
+                hide_side_toolbar: false,
+                allow_symbol_change: true,
+                save_image: false,
+                studies: [
+                    'MASimple@tv-basicstudies',
+                    'RSI@tv-basicstudies'
+                ],
+                container_id: 'tradingview_advanced_chart'
+            });
+            return;
+        }
+
+        // 2. Official TradingView Lightweight Charts (unpkg.com)
+        if (window.LightweightCharts && typeof window.LightweightCharts.createChart === 'function') {
+            container.innerHTML = '';
+            var chart = window.LightweightCharts.createChart(container, {
+                width: container.clientWidth || 800,
+                height: 500,
+                layout: {
+                    background: { type: 'solid', color: '#ffffff' },
+                    textColor: '#1e293b',
+                    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+                },
+                grid: {
+                    vertLines: { color: '#f1f5f9' },
+                    horzLines: { color: '#f1f5f9' }
+                },
+                crosshair: {
+                    mode: window.LightweightCharts.CrosshairMode.Normal
+                },
+                rightPriceScale: {
+                    borderColor: '#e2e8f0'
+                },
+                timeScale: {
+                    borderColor: '#e2e8f0',
+                    timeVisible: true,
+                    secondsVisible: false
+                }
+            });
+
+            var candleSeries = chart.addCandlestickSeries({
+                upColor: '#0d8a52',
+                downColor: '#c92a2a',
+                borderUpColor: '#0d8a52',
+                borderDownColor: '#c92a2a',
+                wickUpColor: '#0d8a52',
+                wickDownColor: '#c92a2a'
+            });
+
+            var ema9Series = chart.addLineSeries({
+                color: '#1862ff',
+                lineWidth: 2,
+                title: 'EMA 9'
+            });
+
+            var ema21Series = chart.addLineSeries({
+                color: '#d97706',
+                lineWidth: 2,
+                title: 'EMA 21'
+            });
+
+            var ema50Series = chart.addLineSeries({
+                color: '#7c3aed',
+                lineWidth: 2,
+                title: 'EMA 50'
+            });
+
+            var volumeSeries = chart.addHistogramSeries({
+                color: '#94a3b8',
+                priceFormat: { type: 'volume' },
+                priceScaleId: ''
+            });
+            volumeSeries.priceScale().applyOptions({
+                scaleMargins: { top: 0.8, bottom: 0 }
+            });
+
+            var ema9Vals = computeEmaSeries(bars, 9);
+            var ema21Vals = computeEmaSeries(bars, 21);
+            var ema50Vals = computeEmaSeries(bars, 50);
+
+            var candleData = [];
+            var volData = [];
+            var e9Data = [];
+            var e21Data = [];
+            var e50Data = [];
+
+            for (var i = 0; i < bars.length; i++) {
+                var b = bars[i];
+                var t = b.timeSec;
+                candleData.push({ time: t, open: b.open, high: b.high, low: b.low, close: b.close });
+                volData.push({
+                    time: t,
+                    value: b.volume,
+                    color: b.close >= b.open ? 'rgba(13, 138, 82, 0.28)' : 'rgba(201, 42, 42, 0.28)'
+                });
+                e9Data.push({ time: t, value: ema9Vals[i] });
+                e21Data.push({ time: t, value: ema21Vals[i] });
+                e50Data.push({ time: t, value: ema50Vals[i] });
+            }
+
+            candleSeries.setData(candleData);
+            volumeSeries.setData(volData);
+            ema9Series.setData(e9Data);
+            ema21Series.setData(e21Data);
+            ema50Series.setData(e50Data);
+            chart.timeScale().fitContent();
+
+            window.addEventListener('resize', function () {
+                if (container.clientWidth > 0) {
+                    chart.applyOptions({ width: container.clientWidth });
+                }
+            });
+        }
+    }
+
+    function initFspCanvasChart(meta, rawBars) {
+        var canvas = document.getElementById('fsp-candles-canvas');
+        if (!canvas || !rawBars || rawBars.length === 0) return;
+
+        var tf = (meta && meta.timeframe) ? meta.timeframe : 'M15';
         var symbol = meta.symbol || 'XAUUSD';
-        var tf = meta.timeframe || 'M15';
         var currency = meta.currency || 'USD';
         var decimals = detectDecimals(rawBars[rawBars.length - 1].close, symbol);
 
@@ -87,7 +316,6 @@
 
         var hoverIndex = -1;
         var hoverY = -1;
-
         var ohlcEl = document.getElementById('fsp-ohlc-readout');
 
         function updateLegend(idx) {
@@ -100,14 +328,14 @@
             var sign = b.close >= b.open ? '+' : '';
 
             ohlcEl.innerHTML =
-                '<span style="color:#525866;margin-right:0.65rem;">' + formatTimeLabel(b.closeTime, tf) + '</span>' +
-                '<span style="margin-right:0.65rem;">A: <strong>' + formatPrice(b.open, decimals) + '</strong></span>' +
-                '<span style="margin-right:0.65rem;">Y: <strong>' + formatPrice(b.high, decimals) + '</strong></span>' +
-                '<span style="margin-right:0.65rem;">D: <strong>' + formatPrice(b.low, decimals) + '</strong></span>' +
-                '<span style="margin-right:0.65rem;">K: <strong style="color:' + color + ';">' + formatPrice(b.close, decimals) + ' ' + currency + ' (' + sign + chg + '%)</strong></span>' +
-                '<span style="margin-right:0.65rem;">Hacim: <strong>' + formatVolume(b.volume) + '</strong></span>' +
-                '<span style="color:#1862ff;margin-right:0.5rem;">EMA9: ' + formatPrice(ema9[i], decimals) + '</span>' +
-                '<span style="color:#d97706;margin-right:0.5rem;">EMA21: ' + formatPrice(ema21[i], decimals) + '</span>' +
+                '<span style="color:#525866;margin-right:0.55rem;">' + formatTimeLabel(b.closeTime, tf) + '</span>' +
+                '<span style="margin-right:0.55rem;">A: <strong>' + formatPrice(b.open, decimals) + '</strong></span>' +
+                '<span style="margin-right:0.55rem;">Y: <strong>' + formatPrice(b.high, decimals) + '</strong></span>' +
+                '<span style="margin-right:0.55rem;">D: <strong>' + formatPrice(b.low, decimals) + '</strong></span>' +
+                '<span style="margin-right:0.55rem;">K: <strong style="color:' + color + ';">' + formatPrice(b.close, decimals) + ' ' + currency + ' (' + sign + chg + '%)</strong></span>' +
+                '<span style="margin-right:0.55rem;">Hacim: <strong>' + formatVolume(b.volume) + '</strong></span>' +
+                '<span style="color:#1862ff;margin-right:0.45rem;">EMA9: ' + formatPrice(ema9[i], decimals) + '</span>' +
+                '<span style="color:#d97706;margin-right:0.45rem;">EMA21: ' + formatPrice(ema21[i], decimals) + '</span>' +
                 '<span style="color:#7c3aed;">EMA50: ' + formatPrice(ema50[i], decimals) + '</span>';
         }
 
@@ -130,7 +358,7 @@
             var rect = canvas.getBoundingClientRect();
             var dpr = window.devicePixelRatio || 1;
             var width = Math.max(320, Math.floor(rect.width));
-            var height = Math.max(280, Math.floor(rect.height));
+            var height = Math.max(240, Math.floor(rect.height));
 
             if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
                 canvas.width = width * dpr;
@@ -141,22 +369,20 @@
             ctx.save();
             ctx.scale(dpr, dpr);
 
-            // Background
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, width, height);
 
             var rightAxisWidth = 84;
             var padLeft = 12;
-            var padTop = 16;
-            var timeAxisHeight = 26;
+            var padTop = 12;
+            var timeAxisHeight = 24;
             var chartWidth = width - padLeft - rightAxisWidth;
             var totalPlotHeight = height - padTop - timeAxisHeight;
-            var pricePlotHeight = Math.floor(totalPlotHeight * 0.78);
-            var volPlotTop = padTop + pricePlotHeight + 8;
-            var volPlotHeight = totalPlotHeight - pricePlotHeight - 8;
+            var pricePlotHeight = Math.floor(totalPlotHeight * 0.76);
+            var volPlotTop = padTop + pricePlotHeight + 6;
+            var volPlotHeight = totalPlotHeight - pricePlotHeight - 6;
             var rightAxisX = width - rightAxisWidth;
 
-            // Compute price min/max
             var minPrice = Infinity;
             var maxPrice = -Infinity;
             var maxVol = 1;
@@ -168,15 +394,6 @@
                 if (ema50[i] < minPrice) minPrice = ema50[i];
                 if (ema50[i] > maxPrice) maxPrice = ema50[i];
                 if (b.volume > maxVol) maxVol = b.volume;
-            }
-
-            if (meta.pivot && meta.pivot > 0) {
-                minPrice = Math.min(minPrice, meta.pivot);
-                maxPrice = Math.max(maxPrice, meta.pivot);
-            }
-            if (meta.vwap && meta.vwap > 0) {
-                minPrice = Math.min(minPrice, meta.vwap);
-                maxPrice = Math.max(maxPrice, meta.vwap);
             }
 
             var span = maxPrice - minPrice;
@@ -193,7 +410,6 @@
                 return maxPrice - ((y - padTop) / pricePlotHeight) * span;
             }
 
-            // Grid lines & right price labels
             ctx.strokeStyle = '#eef0f4';
             ctx.lineWidth = 1;
             ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
@@ -201,7 +417,7 @@
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
 
-            var gridSteps = 6;
+            var gridSteps = 5;
             for (var g = 0; g <= gridSteps; g++) {
                 var gy = padTop + (pricePlotHeight / gridSteps) * g;
                 var gp = maxPrice - (span / gridSteps) * g;
@@ -212,7 +428,6 @@
                 ctx.fillText(formatPrice(gp, decimals), rightAxisX + 8, gy);
             }
 
-            // Separator between price & volume and right axis border
             ctx.strokeStyle = '#dde1e8';
             ctx.beginPath();
             ctx.moveTo(padLeft, padTop + pricePlotHeight);
@@ -231,7 +446,6 @@
                 return padLeft + (idx + 0.5) * slotWidth;
             }
 
-            // Vertical grid + Time labels
             var timeStep = Math.max(1, Math.floor(n / 6));
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -247,7 +461,6 @@
                 ctx.fillText(formatTimeLabel(rawBars[t].closeTime, tf), tx, height - timeAxisHeight / 2);
             }
 
-            // Volume bars & Candlesticks
             for (var j = 0; j < n; j++) {
                 var bar = rawBars[j];
                 var cx = indexToX(j);
@@ -255,12 +468,10 @@
                 var candleColor = isBull ? '#0d8a52' : '#c92a2a';
                 var volColor = isBull ? 'rgba(13, 138, 82, 0.25)' : 'rgba(201, 42, 42, 0.25)';
 
-                // Volume bar
                 var vh = (bar.volume / maxVol) * volPlotHeight;
                 ctx.fillStyle = volColor;
                 ctx.fillRect(cx - bodyWidth / 2, volPlotTop + volPlotHeight - vh, bodyWidth, vh);
 
-                // High-Low Wick
                 var highY = priceToY(bar.high);
                 var lowY = priceToY(bar.low);
                 ctx.strokeStyle = candleColor;
@@ -270,7 +481,6 @@
                 ctx.lineTo(cx, lowY);
                 ctx.stroke();
 
-                // Open-Close Body
                 var openY = priceToY(bar.open);
                 var closeY = priceToY(bar.close);
                 var topY = Math.min(openY, closeY);
@@ -279,7 +489,6 @@
                 ctx.fillRect(cx - bodyWidth / 2, topY, bodyWidth, bHeight);
             }
 
-            // Helper to draw EMA line
             function drawLineSeries(series, color, lineWidth) {
                 ctx.save();
                 ctx.strokeStyle = color;
@@ -299,22 +508,6 @@
             drawLineSeries(ema21, '#d97706', 1.6);
             drawLineSeries(ema9, '#1862ff', 1.8);
 
-            // Pivot & VWAP horizontal reference lines
-            if (meta.pivot && meta.pivot >= minPrice && meta.pivot <= maxPrice) {
-                var py = priceToY(meta.pivot);
-                ctx.save();
-                ctx.setLineDash([4, 4]);
-                ctx.strokeStyle = '#64748b';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(padLeft, py);
-                ctx.lineTo(rightAxisX, py);
-                ctx.stroke();
-                ctx.restore();
-                drawPriceTag(ctx, py, 'P ' + formatPrice(meta.pivot, decimals), '#e2e8f0', '#334155', rightAxisX, rightAxisWidth);
-            }
-
-            // Latest close horizontal dashed line + tag
             var lastBar = rawBars[n - 1];
             var lastY = priceToY(lastBar.close);
             var lastIsBull = lastBar.close >= lastBar.open;
@@ -337,7 +530,6 @@
                 rightAxisWidth
             );
 
-            // Crosshair
             if (hoverIndex >= 0 && hoverIndex < n) {
                 var hx = indexToX(hoverIndex);
                 ctx.save();
@@ -398,9 +590,16 @@
         render();
     }
 
+    function boot() {
+        var meta = window.FSP_CHART_META || {};
+        var bars = prepareTimeframeBars(meta);
+        initTradingViewPrimaryChart(meta, bars);
+        initFspCanvasChart(meta, bars);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initChart);
+        document.addEventListener('DOMContentLoaded', boot);
     } else {
-        initChart();
+        boot();
     }
 })();

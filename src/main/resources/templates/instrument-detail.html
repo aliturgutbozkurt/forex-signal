@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="${instrument.symbol().value()} + ' — ' + #{app.title}">Enstrüman Detay</title>
+    <title th:text="${instrument.symbol().value()} + ' (' + ${timeframe.label()} + ') — ' + #{app.title}">Enstrüman Detay</title>
     <link rel="stylesheet" href="/css/app.css"/>
 </head>
 <body>
@@ -11,28 +11,32 @@
     ⚠️ <strong th:text="#{app.legal.disclaimer}">Bu sistem karar destek aracıdır, yatırım tavsiyesi değildir.</strong>
 </div>
 
-<header class="app-header">
-    <div style="display:flex;align-items:center;gap:0.75rem;">
+<header class="app-header" style="flex-wrap:wrap;gap:0.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
         <a href="/" class="btn">← Dashboard</a>
-        <h1 style="font-size:1.15rem;font-weight:700;" th:text="${instrument.symbol().value()} + ' · ' + ${instrument.displayName()}">THYAO</h1>
-        <span class="badge" th:text="${instrument.assetClass().displayNameTr()}">BIST Hisseleri</span>
+        <h1 style="font-size:1.15rem;font-weight:700;" th:text="${instrument.symbol().value()} + ' · ' + ${instrument.displayName()}">XAUUSD</h1>
+        <span class="badge" th:text="${instrument.assetClass().displayNameTr()}">Emtia</span>
         <span th:if="${instrument.delayedFeed()}" class="badge badge-degraded">15dk Gecikmeli BIST Verisi</span>
     </div>
-    <nav class="app-nav">
-        <a th:href="@{'/instrument/' + ${instrument.symbol().value()}(tf='M15')}" class="btn">M15</a>
-        <a th:href="@{'/instrument/' + ${instrument.symbol().value()}(tf='H1')}" class="btn">H1</a>
-        <a th:href="@{'/instrument/' + ${instrument.symbol().value()}(tf='H4')}" class="btn">H4</a>
-        <a th:href="@{'/instrument/' + ${instrument.symbol().value()}(tf='D1')}" class="btn">D1</a>
+    <nav class="app-nav" aria-label="Zaman Dilimi Seçimi" style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+        <a th:each="tfOpt : ${T(com.fsp.shared.Timeframe).values()}"
+           th:href="@{'/instrument/' + ${instrument.symbol().value()}(tf=${tfOpt.name()})}"
+           class="btn tabular-nums"
+           th:classappend="${tfOpt.name() == timeframe.name()} ? 'btn-primary' : ''"
+           th:title="${tfOpt.name()} + ' (' + ${tfOpt.label()} + ') grafiğini aç'"
+           th:text="${tfOpt.label()} + ' (' + ${tfOpt.name()} + ')'">15m (M15)</a>
     </nav>
 </header>
 
 <main class="container-main">
     <div class="grid-dashboard">
-        <!-- Lightweight Charts Canvas + SL/TP Levels -->
-        <section class="glass-card">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
-                <h2 style="font-size:1rem;" th:text="${instrument.symbol().value()} + ' (' + ${timeframe.label()} + ') — TradingView Lightweight Charts'">Grafik</h2>
-                <div class="tabular-nums" style="display:flex;align-items:center;gap:0.65rem;font-size:0.82rem;">
+        <!-- TradingView Official Chart + FSP Closed-Bar Engine Chart -->
+        <section class="glass-card" style="display:grid;gap:1rem;align-content:start;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+                <div>
+                    <h2 style="font-size:1rem;" th:text="${instrument.exchange()} + ':' + ${instrument.symbol().value()} + ' · ' + ${timeframe.label()} + ' (' + ${timeframe.name()} + ') — TradingView Grafiği &amp; Lightweight Charts'">Grafik</h2>
+                </div>
+                <div class="tabular-nums" style="display:flex;align-items:center;gap:0.65rem;font-size:0.82rem;flex-wrap:wrap;">
                     <span>Son Kapanış: <strong th:text="${#numbers.formatDecimal(snapshot.close(), 1, instrument.tickSize().scale())} + ' ' + ${instrument.quoteCurrency().code()}">4069,18 USD</strong></span>
                     <span style="color:var(--text-secondary);">VWAP: <strong th:text="${#numbers.formatDecimal(snapshot.vwap(), 1, instrument.tickSize().scale())}">4065,10</strong></span>
                     <span style="color:var(--text-secondary);">ATR(14): <strong th:text="${#numbers.formatDecimal(snapshot.atr14(), 1, instrument.tickSize().scale())}">28,40</strong></span>
@@ -41,19 +45,34 @@
                 </div>
             </div>
 
-            <div id="fsp-ohlc-readout" class="tabular-nums"
-                 style="font-size:0.78rem;padding:0.4rem 0.65rem;margin-bottom:0.5rem;border-radius:var(--radius-sm);background:var(--bg-canvas);border:1px solid var(--border-subtle);color:var(--text-secondary);">
-                Grafik verisi yükleniyor...
+            <!-- 1. Official TradingView Advanced Real-Time Chart Widget (synced to selected symbol & timeframe) -->
+            <div class="tradingview-widget-container" style="width:100%;height:500px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);background:#ffffff;overflow:hidden;">
+                <div id="tradingview_advanced_chart" style="width:100%;height:500px;"></div>
             </div>
 
-            <div id="fsp-lw-chart" style="width:100%;height:420px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);background:#ffffff;overflow:hidden;position:relative;">
-                <canvas id="fsp-candles-canvas" style="width:100%;height:420px;display:block;cursor:crosshair;"></canvas>
+            <!-- 2. FSP No-Repaint Closed-Bar Engine Chart (EMA 9/21/50 + Volume + Pivot for selected timeframe) -->
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;flex-wrap:wrap;gap:0.5rem;">
+                    <span style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);"
+                          th:text="'FSP No-Repaint Kapanmış Bar Motoru (' + ${timeframe.label()} + ' / ' + ${timeframe.name()} + ' — EMA 9/21/50 &amp; Hacim)'">
+                        FSP No-Repaint Kapanmış Bar Motoru
+                    </span>
+                    <div id="fsp-ohlc-readout" class="tabular-nums" style="font-size:0.78rem;color:var(--text-secondary);">
+                        Grafik verisi yükleniyor...
+                    </div>
+                </div>
+                <div id="fsp-lw-chart" style="width:100%;height:300px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);background:#ffffff;overflow:hidden;position:relative;">
+                    <canvas id="fsp-candles-canvas" style="width:100%;height:300px;display:block;cursor:crosshair;"></canvas>
+                </div>
             </div>
         </section>
 
         <!-- Indicator & Confluence Panel -->
         <aside class="glass-card tabular-nums">
-            <h3 style="font-size:0.95rem;margin-bottom:0.75rem;">40+ Gösterge Özeti (O(1) Artımlı Motor)</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <h3 style="font-size:0.95rem;">40+ Gösterge Özeti (O(1) Artımlı Motor)</h3>
+                <span class="badge tabular-nums" th:text="${timeframe.label()} + ' (' + ${timeframe.name()} + ')'">15m (M15)</span>
+            </div>
             <table class="table-clean">
                 <thead>
                 <tr>
@@ -79,7 +98,9 @@
 <script th:inline="javascript">
     window.FSP_CHART_META = {
         symbol: /*[[${instrument.symbol().value()}]]*/ 'XAUUSD',
+        exchange: /*[[${instrument.exchange()}]]*/ 'OANDA',
         timeframe: /*[[${timeframe.name()}]]*/ 'M15',
+        timeframeLabel: /*[[${timeframe.label()}]]*/ '15m',
         currency: /*[[${instrument.quoteCurrency().code()}]]*/ 'USD',
         close: /*[[${snapshot.close()}]]*/ 0,
         vwap: /*[[${snapshot.vwap()}]]*/ 0,
@@ -101,6 +122,8 @@
         /*[/]*/
     ];
 </script>
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script type="text/javascript" src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
 <script src="/js/chart.js"></script>
 <script src="/js/voice.js"></script>
 </body>

@@ -257,7 +257,7 @@ Teknikler: scanner'a sembol başına değil **toplu (batch) istek**, HTTP/2 keep
 | FR-11 | Performans paneli: win rate, profit factor, expectancy, max DD, Sharpe/Sortino, sinyal sayısı — strateji/varlık/TF bazlı | Değerler backtest motoruyla birebir |
 | FR-12 | Backtest + walk-forward + Monte Carlo | Look-ahead bias testi (shift test) yeşil |
 | FR-13 | Paper-trading modu (canlı sinyallerin sanal takibi) | Her `SignalClosed` sonrası equity eğrisi güncellenir |
-| FR-14 | Grafik: Lightweight Charts, sinyal marker'ları, SL/TP çizgileri, gösterge paneli (her göstergenin yanında `AL` / `SAT` / `TUT` rozeti) | 60 fps pan/zoom, 10k bar, her gösterge satırında AL/SAT/TUT kararı |
+| FR-14 | Grafik: TradingView Advanced Chart Widget + FSP Kapanmış Bar Grafiği, tüm 10 zaman dilimi (`M1, M5, M15, M30, H1, H2, H4, D1, W1, MN`) seçilebilir ve seçilen zaman dilimine göre grafik + gösterge paneli (her göstergenin yanında `AL` / `SAT` / `TUT` rozeti) güncellenir | 60 fps pan/zoom, tüm 10 zaman dilimi seçeneği aktif, her gösterge satırında AL/SAT/TUT kararı |
 | FR-15 | Kimlik: passkey + OAuth2 (Google/GitHub) | Parolasız giriş |
 | FR-16 | Strateji yapılandırma (ağırlık, eşik, risk) ve sürümleme | Değişiklik yeni `Strategy.version`, geçmiş sinyaller eski sürüme bağlı |
 | FR-17 | Data source health & degraded mode göstergesi | Scanner circuit open → UI rozeti "Degraded" |

@@ -64,11 +64,13 @@ public class IdentitySecurityService implements IdentityFacade {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "default-src 'self'; " +
-                                "script-src 'self' 'unsafe-inline' https://unpkg.com; " +
-                                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                                "font-src 'self' https://fonts.gstatic.com; " +
-                                "connect-src 'self'"))
+                                "default-src 'self' https://*.tradingview.com https://*.tradingview-widget.com; " +
+                                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://s3.tradingview.com https://*.tradingview.com https://*.tradingview-widget.com; " +
+                                "frame-src 'self' https://s.tradingview.com https://*.tradingview.com https://*.tradingview-widget.com; " +
+                                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.tradingview.com https://*.tradingview-widget.com; " +
+                                "img-src 'self' data: blob: https://*.tradingview.com https://*.tradingview-widget.com; " +
+                                "font-src 'self' data: https://fonts.gstatic.com https://*.tradingview.com https://*.tradingview-widget.com; " +
+                                "connect-src 'self' https://*.tradingview.com https://*.tradingview-widget.com wss://*.tradingview.com"))
                 );
         return http.build();
     }

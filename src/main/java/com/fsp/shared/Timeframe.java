@@ -37,6 +37,36 @@ public enum Timeframe {
         return label;
     }
 
+    public String labelTr() {
+        return switch (this) {
+            case M1 -> "1dk";
+            case M5 -> "5dk";
+            case M15 -> "15dk";
+            case M30 -> "30dk";
+            case H1 -> "1s";
+            case H2 -> "2s";
+            case H4 -> "4s";
+            case D1 -> "1G";
+            case W1 -> "1H";
+            case MN -> "1A";
+        };
+    }
+
+    public String tradingViewInterval() {
+        return switch (this) {
+            case M1 -> "1";
+            case M5 -> "5";
+            case M15 -> "15";
+            case M30 -> "30";
+            case H1 -> "60";
+            case H2 -> "120";
+            case H4 -> "240";
+            case D1 -> "D";
+            case W1 -> "W";
+            case MN -> "M";
+        };
+    }
+
     public String scannerSuffix() {
         return scannerSuffix;
     }
