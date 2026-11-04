@@ -7,6 +7,7 @@ Her kritik eşzamanlılık/durum kuralı **kod yazılmadan önce** TLA+ ile mode
 | [SignalLifecycle.tla](SignalLifecycle.tla) | INV-SIG-1..4, AppendOnly | `signal.domain.Signal`, `signal.domain.SignalBook` | `SignalBookProperties` (jqwik) |
 | [AlertDelivery.tla](AlertDelivery.tla) | INV-ALR-1 (en fazla 1 sesli okuma), LIV-ALR-1 (eninde sonunda teslim) | Modulith Event Publication Registry, `alerting.SseHub`, `static/js/voice.js` dedup | `AlertDeliveryScenarioTest`, Playwright reconnect testi |
 | [BarIngestion.tla](BarIngestion.tla) | INV-BAR-1/2 (no-repaint, sıralı, boşluksuz), LIV-BAR-1 | `marketdata.domain.BarSeries`, `analysis.BarWatermark` | `BarSeriesProperties` |
+| [SharedHotCache.tla](SharedHotCache.tla) | INV-CACHE-1 (Single-Flight tekillik), INV-CACHE-2 (0 ms önbellek sürekliliği), INV-CACHE-3 (kapalı seansta fiyat/sinyal sabitleme), INV-CACHE-4 (yalnızca açık seansta gerçek fiyat değişimiyle sinyal güncelleme) | `marketdata.adapter.out.OhlcvAdapter`, `static/js/voice.js`, `static/js/chart.js` | `MarketDataModuleTests` |
 
 ## Çalıştırma
 ```bash

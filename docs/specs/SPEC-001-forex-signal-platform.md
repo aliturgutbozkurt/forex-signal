@@ -150,6 +150,7 @@ stateDiagram-v2
 | INV-BAR-1/2 | Yalnızca kapanmış bar; sıralı, boşluksuz, tek sefer | `BarIngestion.tla` |
 | INV-ALR-1 | Her istemci her sinyali en fazla 1 kez seslendirir | `AlertDelivery.tla` |
 | LIV-ALR-1 | Yayınlanan sinyal her bağlı istemciye eninde sonunda ulaşır | `AlertDelivery.tla` |
+| INV-CACHE-1..4 | Dış kaynağa en fazla 1 aktif Single-Flight istek; kapalı seansta fiyat ve AL/SAT/TUT sinyalleri %100 sabit; yalnızca açık seansta gerçek fiyat değiştiğinde güncelleme | `SharedHotCache.tla` |
 
 ### 6.4 Domain Events
 `BarClosed`, `IndicatorSnapshotComputed`, `MarketRegimeChanged`, `SignalOpened`, `SignalInvalidated`, `TakeProfitHit`, `StopLossHit`, `SignalExpired`, `SignalExplained`, `WatchlistChanged`. Hepsi `@DomainEvent` (jMolecules) + Modulith `@Externalized` adayları; Event Publication Registry (JDBC) ile transactional outbox.

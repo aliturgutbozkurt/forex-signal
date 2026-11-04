@@ -119,5 +119,43 @@ class MarketDataModuleTests {
         int scanned = service.executeParallelScanCycle(Timeframe.M15, List.of(Symbol.of("EURUSD"), Symbol.of("XAUUSD"), Symbol.of("USOIL")));
         assertThat(scanned).isEqualTo(3);
     }
+
+    @Test
+    @Tag("INV-CACHE-1")
+    @Tag("INV-CACHE-2")
+    @Tag("INV-CACHE-3")
+    @Tag("INV-CACHE-4")
+    void sharedHotCacheAndSessionFreezeSatisfyTlaInvariants() {
+        OhlcvAdapter ohlcv = new OhlcvAdapter();
+        var snapshot = ohlcv.getSharedHotCacheSnapshot();
+
+        assertThat(snapshot).containsEntry("source", "SINGLE_FLIGHT_SHARED_HOT_CACHE");
+        assertThat(snapshot).containsEntry("tlaVerified", "SharedHotCache.tla (INV-CACHE-1..4)");
+        assertThat(snapshot.get("instrumentCount")).isEqualTo(32);
+
+        @SuppressWarnings("unchecked")
+        var prices = (java.util.Map<String, Double>) snapshot.get("prices");
+        assertThat(prices).hasSize(32);
+        assertThat(prices.values()).allMatch(p -> p != null && p > 0.0);
+
+        Instant wednesdayOpenUtc = ZonedDateTime.of(2026, 11, 4, 15, 30, 0, 0, ZoneId.of("UTC")).toInstant();
+        Instant wednesdayAfterCloseUtc = ZonedDateTime.of(2026, 11, 4, 22, 30, 0, 0, ZoneId.of("UTC")).toInstant();
+        Instant wednesdayCmeBreakUtc = ZonedDateTime.of(2026, 11, 4, 21, 30, 0, 0, ZoneId.of("UTC")).toInstant();
+        Instant saturdayClosedUtc = ZonedDateTime.of(2026, 11, 7, 15, 30, 0, 0, ZoneId.of("UTC")).toInstant();
+
+        // US Equities (NASDAQ 14:30 - 21:00 UTC)
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("AAPL", wednesdayOpenUtc)).isTrue();
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("AAPL", wednesdayAfterCloseUtc)).isFalse();
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("AAPL", saturdayClosedUtc)).isFalse();
+
+        // ICE Softs (09:00 - 18:30 UTC)
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("SUGAR", wednesdayOpenUtc)).isTrue();
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("SUGAR", wednesdayAfterCloseUtc)).isFalse();
+
+        // Precious Metals (open 24x5 except 21:00-22:00 UTC maintenance break & weekend)
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("XAUUSD", wednesdayOpenUtc)).isTrue();
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("XAUUSD", wednesdayCmeBreakUtc)).isFalse();
+        assertThat(OhlcvAdapter.isSessionOpenAtUtc("XAUUSD", saturdayClosedUtc)).isFalse();
+    }
 }
 

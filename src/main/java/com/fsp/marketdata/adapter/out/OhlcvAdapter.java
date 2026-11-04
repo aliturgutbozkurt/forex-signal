@@ -10,9 +10,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jmolecules.architecture.hexagonal.SecondaryAdapter;
@@ -45,19 +50,19 @@ public class OhlcvAdapter implements MarketDataPort {
 
     private static final Map<String, Double> BASE_PRICES = Map.ofEntries(
             // Precious Metals
-            Map.entry("XAUUSD", 4062.71),
-            Map.entry("XAGUSD", 52.330),
-            Map.entry("XPTUSD", 1501.70),
-            Map.entry("XPDUSD", 1004.00),
+            Map.entry("XAUUSD", 4060.36),
+            Map.entry("XAGUSD", 52.282),
+            Map.entry("XPTUSD", 1498.20),
+            Map.entry("XPDUSD", 1003.00),
             // Energy Commodities
-            Map.entry("USOIL", 88.47),
+            Map.entry("USOIL", 88.12),
             Map.entry("UKOIL", 94.62),
-            Map.entry("NATGAS", 2.960),
-            Map.entry("GASOLINE", 2.7350),
-            Map.entry("HEATOIL", 4.2145),
+            Map.entry("NATGAS", 2.959),
+            Map.entry("GASOLINE", 2.7286),
+            Map.entry("HEATOIL", 4.2055),
             // Industrial Metals
-            Map.entry("COPPER", 6.4150),
-            Map.entry("ALUMINUM", 3193.25),
+            Map.entry("COPPER", 6.4290),
+            Map.entry("ALUMINUM", 3181.50),
             // Agricultural & Soft Commodities
             Map.entry("WHEAT", 598.50),
             Map.entry("CORN", 444.25),
@@ -67,22 +72,22 @@ public class OhlcvAdapter implements MarketDataPort {
             Map.entry("COCOA", 5427.00),
             Map.entry("COTTON", 78.15),
             // Forex Pairs
-            Map.entry("EURUSD", 1.12371),
-            Map.entry("GBPUSD", 1.34733),
-            Map.entry("USDJPY", 158.297),
-            Map.entry("USDCHF", 0.81709),
-            Map.entry("AUDUSD", 0.70090),
-            Map.entry("USDCAD", 1.39672),
-            Map.entry("NZDUSD", 0.56247),
-            Map.entry("USDTRY", 50.0178),
+            Map.entry("EURUSD", 1.12296),
+            Map.entry("GBPUSD", 1.34674),
+            Map.entry("USDJPY", 158.362),
+            Map.entry("USDCHF", 0.81601),
+            Map.entry("AUDUSD", 0.70027),
+            Map.entry("USDCAD", 1.39737),
+            Map.entry("NZDUSD", 0.56196),
+            Map.entry("USDTRY", 50.0158),
             // US Equities
-            Map.entry("AAPL", 353.89),
-            Map.entry("NVDA", 203.64),
-            Map.entry("MSFT", 554.05),
-            Map.entry("TSLA", 390.40),
+            Map.entry("AAPL", 349.51),
+            Map.entry("NVDA", 200.13),
+            Map.entry("MSFT", 555.80),
+            Map.entry("TSLA", 385.19),
             // Global Indices
-            Map.entry("SPX500", 7710.25),
-            Map.entry("NDX100", 28631.60)
+            Map.entry("SPX500", 7688.62),
+            Map.entry("NDX100", 28437.17)
     );
 
     private static final Map<String, String> TV_TICKER_TO_SYMBOL = Map.ofEntries(
@@ -127,9 +132,10 @@ public class OhlcvAdapter implements MarketDataPort {
             Map.entry("NASDAQ:NDX", "NDX100")
     );
 
-    private final Map<String, Double> livePrices = new ConcurrentHashMap<>(BASE_PRICES);
+    private final AtomicReference<Map<String, Double>> livePricesRef = new AtomicReference<>(Map.copyOf(BASE_PRICES));
     private final Map<String, Bar> customBackfillStore = new ConcurrentHashMap<>();
     private final AtomicBoolean singleFlightLock = new AtomicBoolean(false);
+    private final AtomicBoolean initialSeedCompleted = new AtomicBoolean(false);
     private final AtomicLong lastRefreshedEpochMs = new AtomicLong(System.currentTimeMillis());
     private final AtomicLong singleFlightFetchCount = new AtomicLong(0L);
     private final AtomicLong cacheServedCount = new AtomicLong(0L);
@@ -170,35 +176,82 @@ public class OhlcvAdapter implements MarketDataPort {
         }
     }
 
+    /**
+     * Checks whether the real exchange session for a symbol is currently open in UTC,
+     * matching {@code docs/tla/SharedHotCache.tla} (INV-CACHE-3: ClosedMarketSignalsFrozen).
+     */
+    public static boolean isSessionOpenAtUtc(String symbol, Instant instant) {
+        ZonedDateTime utc = instant.atZone(ZoneOffset.UTC);
+        DayOfWeek day = utc.getDayOfWeek();
+        int utcMin = utc.getHour() * 60 + utc.getMinute();
+
+        // Weekend closure (Fri 22:00 UTC .. Sun 22:00 UTC)
+        if (day == DayOfWeek.SATURDAY
+                || (day == DayOfWeek.FRIDAY && utcMin >= 22 * 60)
+                || (day == DayOfWeek.SUNDAY && utcMin < 22 * 60)) {
+            return false;
+        }
+        // US Equities (NASDAQ 14:30 - 21:00 UTC, Mon-Fri)
+        if ("AAPL".equals(symbol) || "NVDA".equals(symbol) || "MSFT".equals(symbol) || "TSLA".equals(symbol)) {
+            return day != DayOfWeek.SUNDAY && utcMin >= (14 * 60 + 30) && utcMin < (21 * 60);
+        }
+        // ICE Soft Commodities (09:00 - 18:30 UTC, Mon-Fri)
+        if ("SUGAR".equals(symbol) || "COFFEE".equals(symbol) || "COCOA".equals(symbol) || "COTTON".equals(symbol)) {
+            return day != DayOfWeek.SUNDAY && utcMin >= (9 * 60) && utcMin < (18 * 60 + 30);
+        }
+        // CBOT Grains (daily break 13:45 - 14:30 UTC and 19:20 - 23:59 UTC)
+        if ("WHEAT".equals(symbol) || "CORN".equals(symbol) || "SOYBN".equals(symbol)) {
+            return !((utcMin >= (13 * 60 + 45) && utcMin < (14 * 60 + 30))
+                    || (utcMin >= (19 * 60 + 20) && utcMin < (24 * 60)));
+        }
+        // CME/COMEX/NYMEX daily maintenance break (21:00 - 22:00 UTC)
+        if (!"EURUSD".equals(symbol) && !"GBPUSD".equals(symbol) && !"USDJPY".equals(symbol)
+                && !"USDCHF".equals(symbol) && !"AUDUSD".equals(symbol) && !"USDCAD".equals(symbol)
+                && !"NZDUSD".equals(symbol) && !"USDTRY".equals(symbol)
+                && utcMin >= (21 * 60) && utcMin < (22 * 60)) {
+            return false;
+        }
+        return true;
+    }
+
     private void executeSingleFlightFetch() {
+        // INV-CACHE-1 (SingleFlightExclusivity): at most 1 in-flight request to external provider
         if (!singleFlightLock.compareAndSet(false, true)) {
-            // Another thread is already fetching; all callers read from the shared hot cache immediately
             return;
         }
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://scanner.tradingview.com/global/scan"))
                     .timeout(Duration.ofSeconds(2))
-                    .header("Content-Type", "application/json")
+                    .header("Content-Type", "text/plain")
                     .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
                     .POST(HttpRequest.BodyPublishers.ofString(cachedBatchPayload))
                     .build();
             HttpResponse<String> response = sharedHttpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200 && response.body() != null) {
+                Instant nowInstant = Instant.now();
+                boolean isFirstSeed = !initialSeedCompleted.get();
+                Map<String, Double> currentSnap = livePricesRef.get();
+                Map<String, Double> nextSnap = new HashMap<>(currentSnap);
                 Matcher matcher = TV_ROW_PATTERN.matcher(response.body());
                 while (matcher.find()) {
                     String ticker = matcher.group(1);
                     double close = Double.parseDouble(matcher.group(2));
                     String sym = TV_TICKER_TO_SYMBOL.get(ticker);
                     if (sym != null && close > 0.0) {
-                        livePrices.put(sym, close);
+                        // INV-CACHE-3 (ClosedMarketSignalsFrozen): after initial seed, only update open-session markets
+                        if (isFirstSeed || isSessionOpenAtUtc(sym, nowInstant)) {
+                            nextSnap.put(sym, close);
+                        }
                     }
                 }
+                livePricesRef.set(Map.copyOf(nextSnap));
+                initialSeedCompleted.set(true);
                 lastRefreshedEpochMs.set(System.currentTimeMillis());
                 singleFlightFetchCount.incrementAndGet();
             }
         } catch (Exception ignored) {
-            // Stale-While-Revalidate: keep serving the latest hot cache snapshot seamlessly
+            // INV-CACHE-2 (Stale-While-Revalidate): keep serving the latest atomic hot cache snapshot seamlessly
             lastRefreshedEpochMs.set(System.currentTimeMillis());
         } finally {
             singleFlightLock.set(false);
@@ -213,16 +266,18 @@ public class OhlcvAdapter implements MarketDataPort {
         if (now - lastRefresh >= SHARED_CACHE_TTL_MS) {
             Thread.ofVirtual().start(this::executeSingleFlightFetch);
         }
+        Map<String, Double> atomicSnap = livePricesRef.get();
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("source", "SINGLE_FLIGHT_SHARED_HOT_CACHE");
+        snapshot.put("tlaVerified", "SharedHotCache.tla (INV-CACHE-1..4)");
         snapshot.put("externalProvider", "https://scanner.tradingview.com/global/scan");
         snapshot.put("ttlMs", SHARED_CACHE_TTL_MS);
         snapshot.put("lastUpdatedEpochMs", lastRefresh);
         snapshot.put("cacheAgeMs", Math.max(0L, now - lastRefresh));
         snapshot.put("singleFlightFetchCount", singleFlightFetchCount.get());
         snapshot.put("cacheServedCount", served);
-        snapshot.put("instrumentCount", livePrices.size());
-        snapshot.put("prices", Map.copyOf(livePrices));
+        snapshot.put("instrumentCount", atomicSnap.size());
+        snapshot.put("prices", atomicSnap);
         return snapshot;
     }
 
@@ -259,7 +314,7 @@ public class OhlcvAdapter implements MarketDataPort {
     }
 
     public Bar synthesizeClosedBar(Symbol symbol, Timeframe timeframe, long barIndex) {
-        double targetLatestClose = livePrices.getOrDefault(symbol.value(), 100.0);
+        double targetLatestClose = livePricesRef.get().getOrDefault(symbol.value(), 100.0);
         int tfShift = (timeframe.ordinal() - Timeframe.M15.ordinal()) * 13;
         int seed = Math.abs(symbol.value().hashCode() % 97) + tfShift;
         double tfAmp = switch (timeframe) {

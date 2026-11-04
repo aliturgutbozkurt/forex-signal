@@ -31,41 +31,41 @@
 
     var CATALOG_INSTRUMENTS = [
         // 18 Forex Commodities (Precious Metals, Energy, Industrial Metals, Agriculture/Softs)
-        { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAUUSD', price: 4062.71 },
-        { symbol: 'XAGUSD', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAGUSD', price: 52.330 },
-        { symbol: 'XPTUSD', name: 'Spot Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XPTUSD', price: 1501.70 },
-        { symbol: 'XPDUSD', name: 'Spot Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XPDUSD', price: 1004.00 },
-        { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:USOIL', price: 88.47 },
-        { symbol: 'UKOIL', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:UKOIL', price: 94.62 },
-        { symbol: 'NATGAS', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:NATGASUSD', price: 2.960 },
-        { symbol: 'GASOLINE', name: 'RBOB Benzin (Galon / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:RB1!', price: 2.7350 },
-        { symbol: 'HEATOIL', name: 'Kalorifer Yakıtı (Heating Oil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:HO1!', price: 4.2145 },
-        { symbol: 'COPPER', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XCUUSD', price: 6.4150 },
-        { symbol: 'ALUMINUM', name: 'Alüminyum (Ton / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'COMEX', tvSymbol: 'COMEX:ALI1!', price: 3193.25 },
-        { symbol: 'WHEAT', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:WHEATUSD', price: 598.50 },
-        { symbol: 'CORN', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:CORNUSD', price: 444.25 },
-        { symbol: 'SOYBN', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SOYBNUSD', price: 1202.25 },
-        { symbol: 'SUGAR', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SUGARUSD', price: 18.47 },
-        { symbol: 'COFFEE', name: 'Kahve (Coffee C / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:KC1!', price: 279.50 },
-        { symbol: 'COCOA', name: 'Kakao (Cocoa / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CC1!', price: 5427.00 },
-        { symbol: 'COTTON', name: 'Pamuk (Cotton No. 2 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CT1!', price: 78.15 },
+        { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAUUSD', scannerSymbol: 'OANDA:XAUUSD', price: 4060.36 },
+        { symbol: 'XAGUSD', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAGUSD', scannerSymbol: 'COMEX:SI1!', price: 52.282 },
+        { symbol: 'XPTUSD', name: 'Spot Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XPTUSD', scannerSymbol: 'NYMEX:PL1!', price: 1498.20 },
+        { symbol: 'XPDUSD', name: 'Spot Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XPDUSD', scannerSymbol: 'NYMEX:PA1!', price: 1003.00 },
+        { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:USOIL', scannerSymbol: 'NYMEX:CL1!', price: 88.12 },
+        { symbol: 'UKOIL', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:UKOIL', scannerSymbol: 'ICEEUR:BRN1!', price: 94.62 },
+        { symbol: 'NATGAS', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:NATGASUSD', scannerSymbol: 'NYMEX:NG1!', price: 2.959 },
+        { symbol: 'GASOLINE', name: 'RBOB Benzin (Galon / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:RB1!', scannerSymbol: 'NYMEX:RB1!', price: 2.7286 },
+        { symbol: 'HEATOIL', name: 'Kalorifer Yakıtı (Heating Oil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:HO1!', scannerSymbol: 'NYMEX:HO1!', price: 4.2055 },
+        { symbol: 'COPPER', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XCUUSD', scannerSymbol: 'COMEX:HG1!', price: 6.4290 },
+        { symbol: 'ALUMINUM', name: 'Alüminyum (Ton / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'COMEX', tvSymbol: 'COMEX:ALI1!', scannerSymbol: 'COMEX:ALI1!', price: 3181.50 },
+        { symbol: 'WHEAT', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:WHEATUSD', scannerSymbol: 'CBOT:ZW1!', price: 598.50 },
+        { symbol: 'CORN', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:CORNUSD', scannerSymbol: 'CBOT:ZC1!', price: 444.25 },
+        { symbol: 'SOYBN', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SOYBNUSD', scannerSymbol: 'CBOT:ZS1!', price: 1202.25 },
+        { symbol: 'SUGAR', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SUGARUSD', scannerSymbol: 'ICEUS:SB1!', price: 18.47 },
+        { symbol: 'COFFEE', name: 'Kahve (Coffee C / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:KC1!', scannerSymbol: 'ICEUS:KC1!', price: 279.50 },
+        { symbol: 'COCOA', name: 'Kakao (Cocoa / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CC1!', scannerSymbol: 'ICEUS:CC1!', price: 5427.00 },
+        { symbol: 'COTTON', name: 'Pamuk (Cotton No. 2 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CT1!', scannerSymbol: 'ICEUS:CT1!', price: 78.15 },
         // 8 Forex Pairs
-        { symbol: 'EURUSD', name: 'Euro / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:EURUSD', price: 1.12371 },
-        { symbol: 'GBPUSD', name: 'İngiliz Sterlini / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:GBPUSD', price: 1.34733 },
-        { symbol: 'USDJPY', name: 'ABD Doları / Japon Yeni', assetClass: 'Forex', currency: 'JPY', exchange: 'FX', tvSymbol: 'FX:USDJPY', price: 158.297 },
-        { symbol: 'USDCHF', name: 'ABD Doları / İsviçre Frangı', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCHF', price: 0.81709 },
-        { symbol: 'AUDUSD', name: 'Avustralya Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:AUDUSD', price: 0.70090 },
-        { symbol: 'USDCAD', name: 'ABD Doları / Kanada Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCAD', price: 1.39672 },
-        { symbol: 'NZDUSD', name: 'Yeni Zelanda Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:NZDUSD', price: 0.56247 },
-        { symbol: 'USDTRY', name: 'ABD Doları / Türk Lirası', assetClass: 'Forex', currency: 'TRY', exchange: 'FX', tvSymbol: 'FX:USDTRY', price: 50.0178 },
+        { symbol: 'EURUSD', name: 'Euro / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:EURUSD', scannerSymbol: 'FX:EURUSD', price: 1.12296 },
+        { symbol: 'GBPUSD', name: 'İngiliz Sterlini / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:GBPUSD', scannerSymbol: 'FX:GBPUSD', price: 1.34674 },
+        { symbol: 'USDJPY', name: 'ABD Doları / Japon Yeni', assetClass: 'Forex', currency: 'JPY', exchange: 'FX', tvSymbol: 'FX:USDJPY', scannerSymbol: 'FX:USDJPY', price: 158.362 },
+        { symbol: 'USDCHF', name: 'ABD Doları / İsviçre Frangı', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCHF', scannerSymbol: 'FX:USDCHF', price: 0.81601 },
+        { symbol: 'AUDUSD', name: 'Avustralya Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:AUDUSD', scannerSymbol: 'FX:AUDUSD', price: 0.70027 },
+        { symbol: 'USDCAD', name: 'ABD Doları / Kanada Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCAD', scannerSymbol: 'FX:USDCAD', price: 1.39737 },
+        { symbol: 'NZDUSD', name: 'Yeni Zelanda Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:NZDUSD', scannerSymbol: 'FX:NZDUSD', price: 0.56196 },
+        { symbol: 'USDTRY', name: 'ABD Doları / Türk Lirası', assetClass: 'Forex', currency: 'TRY', exchange: 'FX', tvSymbol: 'FX:USDTRY', scannerSymbol: 'FX:USDTRY', price: 50.0158 },
         // 4 US Equities
-        { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:AAPL', price: 228.50 },
-        { symbol: 'NVDA', name: 'NVIDIA Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NVDA', price: 138.60 },
-        { symbol: 'MSFT', name: 'Microsoft Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:MSFT', price: 425.20 },
-        { symbol: 'TSLA', name: 'Tesla Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:TSLA', price: 254.80 },
+        { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:AAPL', scannerSymbol: 'NASDAQ:AAPL', price: 349.51 },
+        { symbol: 'NVDA', name: 'NVIDIA Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NVDA', scannerSymbol: 'NASDAQ:NVDA', price: 200.13 },
+        { symbol: 'MSFT', name: 'Microsoft Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:MSFT', scannerSymbol: 'NASDAQ:MSFT', price: 555.80 },
+        { symbol: 'TSLA', name: 'Tesla Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:TSLA', scannerSymbol: 'NASDAQ:TSLA', price: 385.19 },
         // 2 Global Indices
-        { symbol: 'SPX500', name: 'S&P 500 Endeksi', assetClass: 'Endeks', currency: 'USD', exchange: 'FOREXCOM', tvSymbol: 'FOREXCOM:SPXUSD', price: 5840.00 },
-        { symbol: 'NDX100', name: 'Nasdaq 100 Endeksi', assetClass: 'Endeks', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NDX', price: 20480.00 }
+        { symbol: 'SPX500', name: 'S&P 500 Endeksi', assetClass: 'Endeks', currency: 'USD', exchange: 'FOREXCOM', tvSymbol: 'FOREXCOM:SPXUSD', scannerSymbol: 'SP:SPX', price: 7688.62 },
+        { symbol: 'NDX100', name: 'Nasdaq 100 Endeksi', assetClass: 'Endeks', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NDX', scannerSymbol: 'NASDAQ:NDX', price: 28437.17 }
     ];
 
     var state = {
@@ -1218,11 +1218,13 @@
             }
         }, 60);
 
-        // Single-Flight Shared Hot Cache (Stale-While-Revalidate):
-        // Fetches external data as a single collector user once per TTL window and serves all tabs/users in 0ms from cache.
-        // Never mutates prices or signals synthetically; freezes signals when a market session is closed.
+        // Single-Flight Shared Hot Cache (Stale-While-Revalidate) verified by docs/tla/SharedHotCache.tla:
+        // INV-CACHE-1: At most 1 Single-Flight request in flight to external provider.
+        // INV-CACHE-2: Clients always read valid snapshot in 0ms from Shared Hot Cache.
+        // INV-CACHE-3: When market session is closed (~sessionOpen[i]), prices and AL/SAT/TUT signals NEVER change.
+        // INV-CACHE-4: Signals only update when session is OPEN and real cached price changed.
         var sharedCache = {
-            KEY: 'fsp_shared_hot_cache_v2',
+            KEY: 'fsp_shared_hot_cache_v3',
             TTL_MS: 5000,
             singleFlightFetches: 1,
             cacheHits: 1,
@@ -1238,6 +1240,13 @@
                 var inst = CATALOG_INSTRUMENTS[i];
                 var sym = inst.symbol;
                 var sess = getSessionInfo(inst);
+
+                // INV-CACHE-3 (ClosedMarketSignalsFrozen):
+                // Never update price or recalculate AL/SAT/TUT signals when market session is closed!
+                if (!sess.open) {
+                    continue;
+                }
+
                 var rawNewPrice = Number(pricesMap[sym]);
                 if (!isFinite(rawNewPrice) || rawNewPrice <= 0) continue;
 
@@ -1245,16 +1254,11 @@
                 var mult = Math.pow(10, decimals);
                 var newPrice = Math.round(rawNewPrice * mult) / mult;
 
-                // Only update bars & signals if the market session is OPEN (or initial seed sync) AND real price changed
                 var prevClose = state.evalBySymbolTf[sym] && state.evalBySymbolTf[sym]['M15']
                     ? state.evalBySymbolTf[sym]['M15'].close
                     : inst.price;
 
-                if (!sess.open && state.initialRealSeedDone) {
-                    // Market is closed: keep last close and AL/SAT/TUT signals 100% frozen!
-                    continue;
-                }
-
+                // INV-CACHE-4 (SignalChangesOnlyOnRealOpenPriceMove):
                 if (Math.abs(newPrice - prevClose) > (0.1 / mult)) {
                     var ratio = prevClose > 0 ? (newPrice / prevClose) : 1.0;
                     inst.price = newPrice;
@@ -1262,8 +1266,8 @@
                         var tfObj = TIMEFRAMES[t];
                         var bars = state.barsBySymbolTf[sym][tfObj.code];
                         if (!bars || !bars.length) continue;
-                        if (!state.initialRealSeedDone && Math.abs(ratio - 1.0) > 0.002) {
-                            // Rescale historical series once on initial live price sync so indicators stay aligned with real level
+                        if (Math.abs(ratio - 1.0) > 0.0005) {
+                            // Keep historical closed bars proportionally aligned when syncing to real market level
                             for (var b = 0; b < bars.length; b++) {
                                 bars[b].open = Math.round(bars[b].open * ratio * mult) / mult;
                                 bars[b].high = Math.round(bars[b].high * ratio * mult) / mult;
@@ -1282,7 +1286,6 @@
                     anyChanged = true;
                 }
             }
-            state.initialRealSeedDone = true;
             if (anyChanged) {
                 updateGlobalSummaryCounters();
             }
@@ -1293,8 +1296,9 @@
             var tickerToSym = {};
             for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {
                 var inst = CATALOG_INSTRUMENTS[i];
-                tickers.push(inst.tvSymbol);
-                tickerToSym[inst.tvSymbol.toUpperCase()] = inst.symbol;
+                var scTicker = inst.scannerSymbol || inst.tvSymbol;
+                tickers.push(scTicker);
+                tickerToSym[scTicker.toUpperCase()] = inst.symbol;
             }
             var bodyJson = JSON.stringify({
                 symbols: { tickers: tickers, query: { types: [] } },

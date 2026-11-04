@@ -13,7 +13,7 @@
 (***************************************************************************)
 EXTENDS Naturals, Sequences, FiniteSets
 
-CONSTANTS Instruments,   \* ör. {EURUSD, THYAO}
+CONSTANTS Instruments,   \* ör. {EURUSD, XAUUSD}
           Timeframes,    \* ör. {M5, H1}
           MaxBar,        \* model sınırı: kapanmış bar sayısı
           Cooldown,      \* aynı anahtarda iki sinyal arası min bar
