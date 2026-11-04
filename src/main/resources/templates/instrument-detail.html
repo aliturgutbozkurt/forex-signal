@@ -42,11 +42,11 @@
                     <h2 style="font-size:1rem;" th:text="${instrument.exchange()} + ':' + ${instrument.symbol().value()} + ' · ' + ${timeframe.label()} + ' (' + ${timeframe.name()} + ') — TradingView Grafiği &amp; Lightweight Charts'">Grafik</h2>
                 </div>
                 <div class="tabular-nums" style="display:flex;align-items:center;gap:0.65rem;font-size:0.82rem;flex-wrap:wrap;">
-                    <span>Son Kapanış: <strong th:text="${#numbers.formatDecimal(snapshot.close(), 1, instrument.tickSize().scale())} + ' ' + ${instrument.quoteCurrency().code()}">4069,18 USD</strong></span>
-                    <span style="color:var(--text-secondary);">VWAP: <strong th:text="${#numbers.formatDecimal(snapshot.vwap(), 1, instrument.tickSize().scale())}">4065,10</strong></span>
-                    <span style="color:var(--text-secondary);">ATR(14): <strong th:text="${#numbers.formatDecimal(snapshot.atr14(), 1, instrument.tickSize().scale())}">28,40</strong></span>
-                    <span style="color:var(--text-secondary);">Pivot: <strong th:text="${#numbers.formatDecimal(snapshot.pivots().pivot(), 1, instrument.tickSize().scale())}">4060,00</strong></span>
-                    <span class="badge badge-buy" th:text="'Rejim: ' + ${snapshot.regime().labelTr()}">Yükselen Trend</span>
+                    <span>Son Kapanış: <strong id="fsp-top-close" th:text="${#numbers.formatDecimal(snapshot.close(), 1, instrument.tickSize().scale())} + ' ' + ${instrument.quoteCurrency().code()}">4069,18 USD</strong></span>
+                    <span style="color:var(--text-secondary);">VWAP: <strong id="fsp-top-vwap" th:text="${#numbers.formatDecimal(snapshot.vwap(), 1, instrument.tickSize().scale())}">4065,10</strong></span>
+                    <span style="color:var(--text-secondary);">ATR(14): <strong id="fsp-top-atr" th:text="${#numbers.formatDecimal(snapshot.atr14(), 1, instrument.tickSize().scale())}">28,40</strong></span>
+                    <span style="color:var(--text-secondary);">Pivot: <strong id="fsp-top-pivot" th:text="${#numbers.formatDecimal(snapshot.pivots().pivot(), 1, instrument.tickSize().scale())}">4060,00</strong></span>
+                    <span id="fsp-top-regime" class="badge badge-buy" th:text="'Rejim: ' + ${snapshot.regime().labelTr()}">Yükselen Trend</span>
                 </div>
             </div>
 
@@ -74,8 +74,13 @@
 
         <!-- Indicator & Confluence Panel -->
         <aside class="glass-card tabular-nums">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;">
-                <h3 style="font-size:0.95rem;">40+ Gösterge Özeti (O(1) Artımlı Motor)</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;flex-wrap:wrap;gap:0.35rem;">
+                <div>
+                    <h3 style="font-size:0.95rem;">40+ Gösterge Özeti (O(1) Artımlı Motor)</h3>
+                    <div id="fsp-live-clock" style="font-size:0.72rem;color:var(--color-buy);font-weight:600;margin-top:0.15rem;">
+                        ● Canlı Dinamik Hesaplama Aktif
+                    </div>
+                </div>
                 <span class="badge tabular-nums" th:text="${timeframe.label()} + ' (' + ${timeframe.name()} + ')'">15m (M15)</span>
             </div>
 
@@ -83,9 +88,9 @@
             <div style="padding:0.75rem;margin-bottom:0.85rem;border-radius:var(--radius-sm);background:var(--bg-canvas);border:1px solid var(--border-subtle);">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.55rem;">
                     <span style="font-size:0.76rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.03em;">
-                        Gösterge Karar Özeti (<span th:text="${totalVerdicts}">14</span> Grup)
+                        Gösterge Karar Özeti (<span id="fsp-summary-total" th:text="${totalVerdicts}">14</span> Grup · <span th:text="${timeframe.label()}">15m</span>)
                     </span>
-                    <span class="badge"
+                    <span id="fsp-summary-overall-badge" class="badge"
                           th:classappend="${buyCount > sellCount} ? 'badge-buy' : (${sellCount > buyCount} ? 'badge-sell' : 'badge-hold')"
                           th:text="${buyCount >= sellCount + 4} ? 'GENEL: GÜÇLÜ AL' : (${buyCount > sellCount} ? 'GENEL: AL' : (${sellCount >= buyCount + 4} ? 'GENEL: GÜÇLÜ SAT' : (${sellCount > buyCount} ? 'GENEL: SAT' : 'GENEL: TUT (NÖTR)')))">
                         GENEL: AL
@@ -95,23 +100,23 @@
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;text-align:center;margin-bottom:0.55rem;">
                     <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--color-buy-bg);border:1px solid var(--color-buy-border);">
                         <div style="font-size:0.7rem;font-weight:700;color:var(--color-buy);">AL</div>
-                        <strong style="font-size:1.15rem;color:var(--color-buy);" th:text="${buyCount}">8</strong>
+                        <strong id="fsp-summary-buy-count" style="font-size:1.15rem;color:var(--color-buy);" th:text="${buyCount}">8</strong>
                     </div>
                     <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--color-sell-bg);border:1px solid var(--color-sell-border);">
                         <div style="font-size:0.7rem;font-weight:700;color:var(--color-sell);">SAT</div>
-                        <strong style="font-size:1.15rem;color:var(--color-sell);" th:text="${sellCount}">3</strong>
+                        <strong id="fsp-summary-sell-count" style="font-size:1.15rem;color:var(--color-sell);" th:text="${sellCount}">3</strong>
                     </div>
                     <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border-strong);">
                         <div style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">TUT</div>
-                        <strong style="font-size:1.15rem;color:var(--text-primary);" th:text="${holdCount}">3</strong>
+                        <strong id="fsp-summary-hold-count" style="font-size:1.15rem;color:var(--text-primary);" th:text="${holdCount}">3</strong>
                     </div>
                 </div>
 
                 <!-- Proportional distribution bar -->
                 <div style="display:flex;height:6px;border-radius:999px;overflow:hidden;background:var(--bg-elevated);">
-                    <div th:style="'width:' + (${totalVerdicts > 0 ? (buyCount * 100.0 / totalVerdicts) : 0}) + '%;background:var(--color-buy);'"></div>
-                    <div th:style="'width:' + (${totalVerdicts > 0 ? (holdCount * 100.0 / totalVerdicts) : 0}) + '%;background:#94a3b8;'"></div>
-                    <div th:style="'width:' + (${totalVerdicts > 0 ? (sellCount * 100.0 / totalVerdicts) : 0}) + '%;background:var(--color-sell);'"></div>
+                    <div id="fsp-summary-bar-buy" th:style="'width:' + (${totalVerdicts > 0 ? (buyCount * 100.0 / totalVerdicts) : 0}) + '%;background:var(--color-buy);transition:width 0.3s ease;'"></div>
+                    <div id="fsp-summary-bar-hold" th:style="'width:' + (${totalVerdicts > 0 ? (holdCount * 100.0 / totalVerdicts) : 0}) + '%;background:#94a3b8;transition:width 0.3s ease;'"></div>
+                    <div id="fsp-summary-bar-sell" th:style="'width:' + (${totalVerdicts > 0 ? (sellCount * 100.0 / totalVerdicts) : 0}) + '%;background:var(--color-sell);transition:width 0.3s ease;'"></div>
                 </div>
             </div>
 
@@ -123,7 +128,7 @@
                     <th style="text-align:right;">Karar</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="fsp-indicator-tbody">
                 <tr th:each="row : ${verdictRows}">
                     <th th:text="${row.label()}">EMA 9 / 21 / 50</th>
                     <td th:text="${row.valueText()}">4065,12 / 4050,30 / 4020,15</td>
