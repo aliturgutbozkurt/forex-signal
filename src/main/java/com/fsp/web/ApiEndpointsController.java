@@ -73,6 +73,17 @@ public class ApiEndpointsController {
         return signalFacade.listRecentSignals(limit);
     }
 
+    @GetMapping("/bars/{symbol}")
+    public List<BarClosed> getBars(
+            @PathVariable("symbol") String rawSymbol,
+            @RequestParam(name = "tf", defaultValue = "M15") String rawTf,
+            @RequestParam(name = "limit", defaultValue = "65") int limit
+    ) {
+        Symbol symbol = Symbol.of(rawSymbol);
+        Timeframe tf = Timeframe.valueOf(rawTf.toUpperCase());
+        return marketDataFacade.getEvaluatedBars(symbol, tf, limit);
+    }
+
     @GetMapping(value = "/alerts/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamAlerts(
             @RequestParam(name = "clientId", required = false) @Nullable String clientId,

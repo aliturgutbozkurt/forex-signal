@@ -208,6 +208,11 @@ public class MarketDataApplicationService implements MarketDataFacade {
     }
 
     @Override
+    public void refreshLiveQuotes() {
+        ohlcvAdapter.refreshLivePricesFromTradingView();
+    }
+
+    @Override
     public void setDegradedMode(boolean degraded, String reason) {
         boolean wasDegraded = this.manualDegraded;
         this.manualDegraded = degraded;

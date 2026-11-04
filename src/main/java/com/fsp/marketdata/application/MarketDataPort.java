@@ -15,4 +15,6 @@ public interface MarketDataPort {
     Optional<Bar> backfillMissingBar(Symbol symbol, Timeframe timeframe, long missingBarIndex);
 
     Bar synthesizeClosedBar(Symbol symbol, Timeframe timeframe, long barIndex);
+
+    default void refreshLivePricesFromTradingView() {}
 }

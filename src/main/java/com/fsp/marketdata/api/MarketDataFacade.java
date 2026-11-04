@@ -29,5 +29,7 @@ public interface MarketDataFacade {
     List<BarClosed> ingestAndEvaluateBars(Symbol symbol, Timeframe timeframe, long nowBarIndex, List<BarClosed> candidateBars);
 
     int executeParallelScanCycle(Timeframe timeframe, List<Symbol> symbols);
+
+    default void refreshLiveQuotes() {}
 }
 

@@ -11,10 +11,11 @@ import com.fsp.shared.Symbol;
 import com.fsp.shared.Timeframe;
 import com.fsp.signal.api.SignalFacade;
 import com.fsp.watchlist.api.WatchlistFacade;
-import jakarta.annotation.PostConstruct;
 import java.util.List;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,8 +49,9 @@ public class WebPlatformController {
         this.aiInsightsFacade = aiInsightsFacade;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void warmupInitialPipeline() {
+        marketDataFacade.refreshLiveQuotes();
         List<Symbol> coreSymbols = List.of(
                 Symbol.of("EURUSD"),
                 Symbol.of("THYAO"),
@@ -58,8 +60,8 @@ public class WebPlatformController {
                 Symbol.of("NVDA")
         );
         for (Symbol sym : coreSymbols) {
-            marketDataFacade.getEvaluatedBars(sym, Timeframe.M15, 40);
-            marketDataFacade.getEvaluatedBars(sym, Timeframe.H1, 40);
+            marketDataFacade.getEvaluatedBars(sym, Timeframe.M15, 65);
+            marketDataFacade.getEvaluatedBars(sym, Timeframe.H1, 65);
         }
     }
 
@@ -91,10 +93,17 @@ public class WebPlatformController {
                 .orElseGet(() -> marketDataFacade.allInstruments().getFirst());
         List<BarClosed> bars = marketDataFacade.getEvaluatedBars(instrument.symbol(), tf, 65);
         IndicatorSnapshotDto snapshot = analysisFacade.getLatestSnapshot(instrument.symbol(), tf)
-                .orElseGet(() -> analysisFacade.onBarClosed(bars.getLast()));
+                .orElseGet(() -> {
+                    IndicatorSnapshotDto last = null;
+                    for (BarClosed b : bars) {
+                        last = analysisFacade.onBarClosed(b);
+                    }
+                    return last != null ? last : analysisFacade.onBarClosed(bars.getLast());
+                });
 
         model.addAttribute("instrument", instrument);
         model.addAttribute("timeframe", tf);
+        model.addAttribute("bars", bars);
         model.addAttribute("snapshot", snapshot);
         model.addAttribute("signals", signalFacade.listSignalsForSymbol(instrument.symbol()));
         return "instrument-detail";
