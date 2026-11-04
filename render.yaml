@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: forex-signal-platform
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVER_PORT
+        value: "8080"

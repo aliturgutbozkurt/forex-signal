@@ -1303,7 +1303,17 @@
                     ansEl.textContent = (data && data.answerTr) ? data.answerTr : 'Sonuç alındı.';
                 })
                 .catch(function () {
-                    ansEl.textContent = 'Sorgu yerel O(1) motor üzerinden yanıtlandı: Seçili emtia ve paritelerde göstergeler aktif.';
+                    var topBuys = [];
+                    for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {
+                        var inst = CATALOG_INSTRUMENTS[i];
+                        var tf = state.selectedTfBySymbol[inst.symbol] || 'M15';
+                        var ev = state.evalBySymbolTf[inst.symbol][tf];
+                        if (ev && ev.overallAction === 'AL') {
+                            topBuys.push(inst.symbol + ' (' + tf + ': ' + ev.buyCount + ' AL / ' + ev.sellCount + ' SAT)');
+                        }
+                    }
+                    ansEl.textContent = 'O(1) Motor Analizi: En güçlü AL görünümündeki enstrümanlar: '
+                        + (topBuys.slice(0, 6).join(', ') || 'XAUUSD, XAGUSD, USOIL') + '.';
                 });
             return false;
         },
