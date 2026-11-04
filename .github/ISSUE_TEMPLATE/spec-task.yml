@@ -1,0 +1,19 @@
+name: Spec task
+description: Spec'teki bir gereksinimi uygulayan iş
+labels: ["type:feature"]
+body:
+  - type: input
+    id: spec
+    attributes: { label: Spec ID, placeholder: "FR-06 / INV-SIG-1 / NFR" }
+    validations: { required: true }
+  - type: textarea
+    id: context
+    attributes: { label: Bağlam }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kabul kriterleri (Given/When/Then)
+    validations: { required: true }
+  - type: textarea
+    id: tla
+    attributes: { label: TLA+ etkisi, placeholder: "Yok / SignalLifecycle.tla güncellenecek" }

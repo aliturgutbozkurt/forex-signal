@@ -1,0 +1,11 @@
+target/
+tools/*.jar
+docs/tla/states/
+docs/tla/*_TTrace_*
+*.class
+.idea/
+*.iml
+.vscode/
+.DS_Store
+.env
+*.log
