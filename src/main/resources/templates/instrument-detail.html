@@ -34,7 +34,7 @@
                 <h2 style="font-size:1rem;" th:text="${instrument.symbol().value()} + ' (' + ${timeframe.label()} + ') — TradingView Lightweight Charts'">Grafik</h2>
                 <span class="badge badge-buy" th:text="'Rejim: ' + ${snapshot.regime().labelTr()}">Yükselen Trend</span>
             </div>
-            <div id="fsp-lw-chart" style="width:100%;height:420px;border-radius:var(--radius-sm);background:var(--bg-canvas);display:flex;align-items:center;justify-content:center;">
+            <div id="fsp-lw-chart" style="width:100%;height:420px;border-radius:var(--radius-sm);background:var(--bg-canvas);border:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;">
                 <div class="tabular-nums" style="text-align:center;color:var(--text-secondary);">
                     <div>Son Kapanış: <strong th:text="${snapshot.close()} + ' ' + ${instrument.quoteCurrency().code()}">312.50 TRY</strong></div>
                     <div>VWAP: <span th:text="${#numbers.formatDecimal(snapshot.vwap(), 1, 4)}">311.80</span> ·
@@ -44,19 +44,124 @@
             </div>
         </section>
 
-        <!-- Indicator & Confluence Panel -->
+        <!-- Indicator & Confluence Panel with AL / SAT / TUT per row -->
         <aside class="glass-card tabular-nums">
             <h3 style="font-size:0.95rem;margin-bottom:0.75rem;">40+ Gösterge Özeti (O(1) Artımlı Motor)</h3>
             <table class="table-clean">
+                <thead>
+                <tr>
+                    <th>Gösterge</th>
+                    <th>Değer</th>
+                    <th style="text-align:right;">Karar</th>
+                </tr>
+                </thead>
                 <tbody>
-                <tr><th>EMA 9 / 21 / 50</th><td th:text="${#numbers.formatDecimal(snapshot.ema9(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.ema21(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.ema50(),1,4)}"></td></tr>
-                <tr><th>Supertrend (10,3)</th><td th:text="${snapshot.supertrendBullish()} ? 'Pozitif (AL)' : 'Negatif (SAT)'"></td></tr>
-                <tr><th>Ichimoku Tenkan / Kijun</th><td th:text="${#numbers.formatDecimal(snapshot.ichimokuTenkan(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.ichimokuKijun(),1,4)}"></td></tr>
-                <tr><th>ADX(14) (+DI / -DI)</th><td th:text="${#numbers.formatDecimal(snapshot.adx14(),1,1)} + ' (' + ${#numbers.formatDecimal(snapshot.plusDi14(),1,1)} + ' / ' + ${#numbers.formatDecimal(snapshot.minusDi14(),1,1)} + ')'"></td></tr>
-                <tr><th>RSI(14) &amp; StochRSI</th><td th:text="${#numbers.formatDecimal(snapshot.rsi14(),1,1)} + ' / ' + ${#numbers.formatDecimal(snapshot.stochRsi(),1,1)}"></td></tr>
-                <tr><th>MACD / Sinyal / Hist</th><td th:text="${#numbers.formatDecimal(snapshot.macdLine(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.macdSignal(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.macdHistogram(),1,4)}"></td></tr>
-                <tr><th>RVOL / CMF(20) / MFI(14)</th><td th:text="${#numbers.formatDecimal(snapshot.relativeVolume(),1,2)} + 'x / ' + ${#numbers.formatDecimal(snapshot.cmf20(),1,2)} + ' / ' + ${#numbers.formatDecimal(snapshot.mfi14(),1,1)}"></td></tr>
-                <tr><th>Volume Profile POC</th><td th:text="${#numbers.formatDecimal(snapshot.volumeProfilePoc(),1,4)}"></td></tr>
+                <tr>
+                    <th>EMA 9 / 21 / 50</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.ema9(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.ema21(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.ema50(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.ema9() > snapshot.ema21() and snapshot.ema21() > snapshot.ema50()}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.ema9() < snapshot.ema21() and snapshot.ema21() < snapshot.ema50()}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.ema9() > snapshot.ema21() and snapshot.ema21() > snapshot.ema50()) or (snapshot.ema9() < snapshot.ema21() and snapshot.ema21() < snapshot.ema50())}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>EMA 200 / SMA 20 / HMA 16</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.ema200(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.sma20(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.hma16(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.close() > snapshot.ema200() and snapshot.hma16() > snapshot.sma20()}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.close() < snapshot.ema200() and snapshot.hma16() < snapshot.sma20()}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.close() > snapshot.ema200() and snapshot.hma16() > snapshot.sma20()) or (snapshot.close() < snapshot.ema200() and snapshot.hma16() < snapshot.sma20())}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Supertrend (10,3)</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.supertrend(),1,4)} + ' (' + (${snapshot.supertrendBullish()} ? 'Pozitif' : 'Negatif') + ')'"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.supertrendBullish()}" class="badge badge-buy">AL</span>
+                        <span th:unless="${snapshot.supertrendBullish()}" class="badge badge-sell">SAT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Parabolic SAR (0.02, 0.20)</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.parabolicSar(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.psarBullish()}" class="badge badge-buy">AL</span>
+                        <span th:unless="${snapshot.psarBullish()}" class="badge badge-sell">SAT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Ichimoku Tenkan / Kijun</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.ichimokuTenkan(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.ichimokuKijun(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.ichimokuTenkan() > snapshot.ichimokuKijun() and snapshot.close() >= snapshot.ichimokuSpanA()}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.ichimokuTenkan() < snapshot.ichimokuKijun() and snapshot.close() <= snapshot.ichimokuSpanA()}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.ichimokuTenkan() > snapshot.ichimokuKijun() and snapshot.close() >= snapshot.ichimokuSpanA()) or (snapshot.ichimokuTenkan() < snapshot.ichimokuKijun() and snapshot.close() <= snapshot.ichimokuSpanA())}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>ADX(14) (+DI / -DI)</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.adx14(),1,1)} + ' (' + ${#numbers.formatDecimal(snapshot.plusDi14(),1,1)} + ' / ' + ${#numbers.formatDecimal(snapshot.minusDi14(),1,1)} + ')'"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.adx14() >= 20.0 and snapshot.plusDi14() > snapshot.minusDi14()}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.adx14() >= 20.0 and snapshot.minusDi14() > snapshot.plusDi14()}" class="badge badge-sell">SAT</span>
+                        <span th:if="${snapshot.adx14() < 20.0 or snapshot.plusDi14() == snapshot.minusDi14()}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>RSI(14) &amp; StochRSI</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.rsi14(),1,1)} + ' / ' + ${#numbers.formatDecimal(snapshot.stochRsi(),1,1)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${(snapshot.rsi14() > 52.0 and snapshot.rsi14() < 70.0) or snapshot.rsi14() < 30.0}" class="badge badge-buy">AL</span>
+                        <span th:if="${(snapshot.rsi14() < 48.0 and snapshot.rsi14() >= 30.0) or snapshot.rsi14() >= 70.0}" class="badge badge-sell">SAT</span>
+                        <span th:if="${snapshot.rsi14() >= 48.0 and snapshot.rsi14() <= 52.0}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>MACD / Sinyal / Hist</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.macdLine(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.macdSignal(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.macdHistogram(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.macdHistogram() > 0 and snapshot.macdLine() >= snapshot.macdSignal()}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.macdHistogram() < 0 and snapshot.macdLine() <= snapshot.macdSignal()}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.macdHistogram() > 0 and snapshot.macdLine() >= snapshot.macdSignal()) or (snapshot.macdHistogram() < 0 and snapshot.macdLine() <= snapshot.macdSignal())}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Stoch %K / %D &amp; CCI(20)</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.stochK(),1,1)} + ' / ' + ${#numbers.formatDecimal(snapshot.stochD(),1,1)} + ' · ' + ${#numbers.formatDecimal(snapshot.cci20(),1,1)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.stochK() > snapshot.stochD() and snapshot.cci20() > 20.0}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.stochK() < snapshot.stochD() and snapshot.cci20() < -20.0}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.stochK() > snapshot.stochD() and snapshot.cci20() > 20.0) or (snapshot.stochK() < snapshot.stochD() and snapshot.cci20() < -20.0)}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Bollinger (20,2) &amp;VWAP</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.bbMiddle(),1,4)} + ' / ' + ${#numbers.formatDecimal(snapshot.vwap(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.close() > snapshot.bbMiddle() and snapshot.close() > snapshot.vwap()}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.close() < snapshot.bbMiddle() and snapshot.close() < snapshot.vwap()}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.close() > snapshot.bbMiddle() and snapshot.close() > snapshot.vwap()) or (snapshot.close() < snapshot.bbMiddle() and snapshot.close() < snapshot.vwap())}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>RVOL / CMF(20) / MFI(14)</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.relativeVolume(),1,2)} + 'x / ' + ${#numbers.formatDecimal(snapshot.cmf20(),1,2)} + ' / ' + ${#numbers.formatDecimal(snapshot.mfi14(),1,1)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.cmf20() > 0.05 and snapshot.mfi14() >= 50.0}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.cmf20() < -0.05 and snapshot.mfi14() < 50.0}" class="badge badge-sell">SAT</span>
+                        <span th:unless="${(snapshot.cmf20() > 0.05 and snapshot.mfi14() >= 50.0) or (snapshot.cmf20() < -0.05 and snapshot.mfi14() < 50.0)}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Volume Profile POC</th>
+                    <td th:text="${#numbers.formatDecimal(snapshot.volumeProfilePoc(),1,4)}"></td>
+                    <td style="text-align:right;">
+                        <span th:if="${snapshot.close() > snapshot.volumeProfilePoc() * 1.0005}" class="badge badge-buy">AL</span>
+                        <span th:if="${snapshot.close() < snapshot.volumeProfilePoc() * 0.9995}" class="badge badge-sell">SAT</span>
+                        <span th:if="${snapshot.close() <= snapshot.volumeProfilePoc() * 1.0005 and snapshot.close() >= snapshot.volumeProfilePoc() * 0.9995}" class="badge badge-hold">TUT</span>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </aside>
@@ -65,4 +170,3 @@
 <script src="/js/voice.js"></script>
 </body>
 </html>
-

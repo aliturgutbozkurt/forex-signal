@@ -124,6 +124,12 @@
     border: 1px solid var(--signal-sell-border);
   }
 
+  .badge-hold {
+    color: var(--text-secondary);
+    background: var(--bg-glass-hover);
+    border: 1px solid var(--border-strong);
+  }
+
   .badge-degraded {
     color: var(--accent-degraded);
     background: oklch(0.96 0.03 70);

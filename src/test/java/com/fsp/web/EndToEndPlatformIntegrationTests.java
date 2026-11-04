@@ -70,7 +70,13 @@ class EndToEndPlatformIntegrationTests {
         mockMvc.perform(get("/instrument/THYAO").param("tf", "H1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("15dk Gecikmeli")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Lightweight Charts")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Lightweight Charts")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Karar")))
+                .andExpect(content().string(org.hamcrest.Matchers.anyOf(
+                        org.hamcrest.Matchers.containsString(">AL<"),
+                        org.hamcrest.Matchers.containsString(">SAT<"),
+                        org.hamcrest.Matchers.containsString(">TUT<")
+                )));
 
         mockMvc.perform(get("/styleguide"))
                 .andExpect(status().isOk())
