@@ -21,7 +21,7 @@ Forex, ABD hisseleri (NYSE/NASDAQ), Borsa İstanbul (BIST) hisseleri, emtialar v
 ## 2. Kapsam
 
 ### 2.1 Kapsam içi
-- Varlık sınıfları: `FOREX`, `US_EQUITY`, `BIST_EQUITY`, `COMMODITY`, `INDEX` (+ opsiyonel `CRYPTO` ileride).
+- Varlık sınıfları: `FOREX`, `COMMODITY` (Forex'teki tüm emtialar: Değerli Metaller `XAUUSD, XAGUSD, XPTUSD, XPDUSD`; Enerji `USOIL, UKOIL, NATGAS, GASOLINE, HEATOIL`; Endüstriyel Metaller `COPPER, ALUMINUM`; Tarım & Yumuşak Emtialar `WHEAT, CORN, SOYBN, SUGAR, COFFEE, COCOA, COTTON`), `US_EQUITY`, `INDEX` (BIST / Türkiye borsası kapsam dışıdır).
 - Zaman dilimleri: `M1, M5, M15, M30, H1, H2, H4, D1, W1, MN`.
 - Kullanıcı tanımlı izleme listeleri, zaman dilimi seçimi, **sinyal üretim zaman pencereleri** (ör. "sadece BIST seansında 10:00–18:00", "Londra+NY overlap").
 - Sinyal üretimi, yaşam döngüsü takibi (TP/SL/expire), performans istatistikleri.
@@ -244,7 +244,7 @@ Teknikler: scanner'a sembol başına değil **toplu (batch) istek**, HTTP/2 keep
 
 | ID | Gereksinim | Kabul Kriteri (Given/When/Then özet) |
 |---|---|---|
-| FR-01 | Enstrüman kataloğu (Forex, US, BIST, emtia, endeks) arama/filtre | "THY" yazınca <100 ms'de THYAO (BIST, TRY) listelenir |
+| FR-01 | Enstrüman kataloğu (Forex pariteleri, Forex'teki tüm 18 emtia, ABD hisseleri, küresel endeksler; BIST yok) arama/filtre | "XAU" veya "Altın" yazınca <100 ms'de XAUUSD (OANDA, USD) listelenir |
 | FR-02 | İzleme listesi CRUD + enstrüman başına çoklu timeframe | Kaydet → `WatchlistChanged` → tarama planı güncellenir |
 | FR-03 | Sinyal zaman pencereleri (seans/gün/saat, TZ) | Pencere dışında `Signal.open()` reddedilir (domain exception, log) |
 | FR-04 | Göstergelerden confluence skoru üretimi | Snapshot fixture → deterministik skor (golden test) |

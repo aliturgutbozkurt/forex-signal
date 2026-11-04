@@ -82,36 +82,51 @@ public class MarketDataApplicationService implements MarketDataFacade {
 
     private void seedCatalog() {
         TradingSession forexSession = TradingSession.forex24x5();
-        TradingSession bistSession = TradingSession.bistDefault(BIST_HOLIDAYS);
         TradingSession usSession = TradingSession.usEquityDefault(US_HOLIDAYS);
 
-        // Forex
+        // 1. Forex Commodities — Precious Metals (Değerli Metaller)
+        register(new Instrument(InstrumentId.of("OANDA", "XAUUSD"), "Spot Altın (Ons / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "XAGUSD"), "Spot Gümüş (Ons / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "XPTUSD"), "Spot Platin (Ons / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "XPDUSD"), "Spot Paladyum (Ons / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+
+        // 2. Forex Commodities — Energy (Enerji Emtiaları)
+        register(new Instrument(InstrumentId.of("TVC", "USOIL"), "WTI Ham Petrol (Varil / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("TVC", "UKOIL"), "Brent Ham Petrol (Varil / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "NATGAS"), "Doğalgaz (Natural Gas / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("NYMEX", "GASOLINE"), "RBOB Benzin (Galon / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.0001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("NYMEX", "HEATOIL"), "Kalorifer Yakıtı (Heating Oil / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.0001"), forexSession, false));
+
+        // 3. Forex Commodities — Industrial Metals (Endüstriyel Metaller)
+        register(new Instrument(InstrumentId.of("OANDA", "COPPER"), "Bakır (High Grade Copper / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.0001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("COMEX", "ALUMINUM"), "Alüminyum (Ton / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+
+        // 4. Forex Commodities — Agricultural & Softs (Tarım & Yumuşak Emtialar)
+        register(new Instrument(InstrumentId.of("OANDA", "WHEAT"), "Buğday (Wheat / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "CORN"), "Mısır (Corn / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "SOYBN"), "Soya Fasulyesi (Soybeans / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("OANDA", "SUGAR"), "Şeker (Sugar No. 11 / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("ICEUS", "COFFEE"), "Kahve (Coffee C / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+        register(new Instrument(InstrumentId.of("ICEUS", "COCOA"), "Kakao (Cocoa / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("1.00"), forexSession, false));
+        register(new Instrument(InstrumentId.of("ICEUS", "COTTON"), "Pamuk (Cotton No. 2 / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
+
+        // 5. Forex Currency Pairs (Majör & Çapraz Pariteler)
         register(new Instrument(InstrumentId.of("FX", "EURUSD"), "Euro / ABD Doları", AssetClass.FOREX, Currency.USD, new BigDecimal("0.00001"), forexSession, false));
         register(new Instrument(InstrumentId.of("FX", "GBPUSD"), "İngiliz Sterlini / ABD Doları", AssetClass.FOREX, Currency.USD, new BigDecimal("0.00001"), forexSession, false));
         register(new Instrument(InstrumentId.of("FX", "USDJPY"), "ABD Doları / Japon Yeni", AssetClass.FOREX, Currency.JPY, new BigDecimal("0.001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("FX", "USDCHF"), "ABD Doları / İsviçre Frangı", AssetClass.FOREX, Currency.USD, new BigDecimal("0.00001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("FX", "AUDUSD"), "Avustralya Doları / ABD Doları", AssetClass.FOREX, Currency.USD, new BigDecimal("0.00001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("FX", "USDCAD"), "ABD Doları / Kanada Doları", AssetClass.FOREX, Currency.USD, new BigDecimal("0.00001"), forexSession, false));
+        register(new Instrument(InstrumentId.of("FX", "NZDUSD"), "Yeni Zelanda Doları / ABD Doları", AssetClass.FOREX, Currency.USD, new BigDecimal("0.00001"), forexSession, false));
         register(new Instrument(InstrumentId.of("FX", "USDTRY"), "ABD Doları / Türk Lirası", AssetClass.FOREX, Currency.TRY, new BigDecimal("0.0001"), forexSession, false));
 
-        // BIST Equities (15-min delayed badge per SPEC-001 §13 Q2)
-        register(new Instrument(InstrumentId.of("BIST", "THYAO"), "Türk Hava Yolları A.O.", AssetClass.BIST_EQUITY, Currency.TRY, new BigDecimal("0.25"), bistSession, true));
-        register(new Instrument(InstrumentId.of("BIST", "GARAN"), "Garanti BBVA", AssetClass.BIST_EQUITY, Currency.TRY, new BigDecimal("0.10"), bistSession, true));
-        register(new Instrument(InstrumentId.of("BIST", "ASELS"), "Aselsan Elektronik Sanayi", AssetClass.BIST_EQUITY, Currency.TRY, new BigDecimal("0.05"), bistSession, true));
-        register(new Instrument(InstrumentId.of("BIST", "AKBNK"), "Akbank T.A.Ş.", AssetClass.BIST_EQUITY, Currency.TRY, new BigDecimal("0.05"), bistSession, true));
-        register(new Instrument(InstrumentId.of("BIST", "KCHOL"), "Koç Holding A.Ş.", AssetClass.BIST_EQUITY, Currency.TRY, new BigDecimal("0.10"), bistSession, true));
-        register(new Instrument(InstrumentId.of("BIST", "EREGL"), "Erdemir Demir Çelik", AssetClass.BIST_EQUITY, Currency.TRY, new BigDecimal("0.02"), bistSession, true));
-
-        // US Equities
+        // 6. US Equities
         register(new Instrument(InstrumentId.of("NASDAQ", "AAPL"), "Apple Inc.", AssetClass.US_EQUITY, Currency.USD, new BigDecimal("0.01"), usSession, false));
         register(new Instrument(InstrumentId.of("NASDAQ", "NVDA"), "NVIDIA Corporation", AssetClass.US_EQUITY, Currency.USD, new BigDecimal("0.01"), usSession, false));
         register(new Instrument(InstrumentId.of("NASDAQ", "MSFT"), "Microsoft Corporation", AssetClass.US_EQUITY, Currency.USD, new BigDecimal("0.01"), usSession, false));
         register(new Instrument(InstrumentId.of("NASDAQ", "TSLA"), "Tesla Inc.", AssetClass.US_EQUITY, Currency.USD, new BigDecimal("0.01"), usSession, false));
 
-        // Commodities
-        register(new Instrument(InstrumentId.of("OANDA", "XAUUSD"), "Spot Altın (Ons / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
-        register(new Instrument(InstrumentId.of("OANDA", "XAGUSD"), "Spot Gümüş (Ons / USD)", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.001"), forexSession, false));
-        register(new Instrument(InstrumentId.of("TVC", "USOIL"), "WTI Ham Petrol", AssetClass.COMMODITY, Currency.USD, new BigDecimal("0.01"), forexSession, false));
-
-        // Indices
-        register(new Instrument(InstrumentId.of("BIST", "XU100"), "BIST 100 Endeksi", AssetClass.INDEX, Currency.PTS, new BigDecimal("0.01"), bistSession, true));
+        // 7. Global Indices
         register(new Instrument(InstrumentId.of("SP", "SPX500"), "S&P 500 Endeksi", AssetClass.INDEX, Currency.USD, new BigDecimal("0.10"), usSession, false));
         register(new Instrument(InstrumentId.of("NASDAQ", "NDX100"), "Nasdaq 100 Endeksi", AssetClass.INDEX, Currency.USD, new BigDecimal("0.10"), usSession, false));
     }

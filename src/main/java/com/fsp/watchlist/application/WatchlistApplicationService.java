@@ -30,13 +30,16 @@ public class WatchlistApplicationService implements WatchlistFacade {
     }
 
     private void seedDefaultSubscriptions() {
+        defaultWatchlist.subscribe(Symbol.of("XAUUSD"), EnumSet.of(Timeframe.M5, Timeframe.M15, Timeframe.H1, Timeframe.H4));
+        defaultWatchlist.subscribe(Symbol.of("XAGUSD"), EnumSet.of(Timeframe.M15, Timeframe.H1, Timeframe.H4));
+        defaultWatchlist.subscribe(Symbol.of("USOIL"), EnumSet.of(Timeframe.M15, Timeframe.H1, Timeframe.H4, Timeframe.D1));
+        defaultWatchlist.subscribe(Symbol.of("UKOIL"), EnumSet.of(Timeframe.M15, Timeframe.H1));
+        defaultWatchlist.subscribe(Symbol.of("NATGAS"), EnumSet.of(Timeframe.M15, Timeframe.H1));
+        defaultWatchlist.subscribe(Symbol.of("COPPER"), EnumSet.of(Timeframe.H1, Timeframe.H4));
         defaultWatchlist.subscribe(Symbol.of("EURUSD"), EnumSet.of(Timeframe.M5, Timeframe.M15, Timeframe.H1, Timeframe.H4));
-        defaultWatchlist.subscribe(Symbol.of("THYAO"), EnumSet.of(Timeframe.M15, Timeframe.H1, Timeframe.H4, Timeframe.D1));
-        defaultWatchlist.subscribe(Symbol.of("XAUUSD"), EnumSet.of(Timeframe.M5, Timeframe.M15, Timeframe.H1));
+        defaultWatchlist.subscribe(Symbol.of("GBPUSD"), EnumSet.of(Timeframe.M15, Timeframe.H1));
         defaultWatchlist.subscribe(Symbol.of("AAPL"), EnumSet.of(Timeframe.M15, Timeframe.H1, Timeframe.D1));
         defaultWatchlist.subscribe(Symbol.of("NVDA"), EnumSet.of(Timeframe.M15, Timeframe.H1));
-        defaultWatchlist.subscribe(Symbol.of("GARAN"), EnumSet.of(Timeframe.M15, Timeframe.H1));
-        defaultWatchlist.subscribe(Symbol.of("XU100"), EnumSet.of(Timeframe.H1, Timeframe.H4));
     }
 
     @Override

@@ -22,7 +22,9 @@
     </div>
     <nav class="app-nav">
         <a href="/" class="active" th:text="#{nav.dashboard}">Canlı Sinyal Akışı</a>
-        <a href="/instrument/THYAO">THYAO Grafik</a>
+        <a href="/instrument/XAUUSD">XAUUSD (Altın)</a>
+        <a href="/instrument/XAGUSD">XAGUSD (Gümüş)</a>
+        <a href="/instrument/USOIL">USOIL (WTI Petrol)</a>
         <a href="/instrument/EURUSD">EURUSD Grafik</a>
         <a href="/styleguide" th:text="#{nav.styleguide}">Tasarım Sistemi</a>
         <button type="button" class="btn btn-buy" onclick="window.FspVoice && window.FspVoice.testBuyVoice()" th:text="#{voice.test.buy}">AL Sesi Test Et</button>
@@ -83,6 +85,7 @@
             </div>
             <div class="signal-grid" id="live-signal-list">
                 <article th:each="sig : ${signals}"
+                         th:if="${sig.currency().code() != 'TRY' and sig.currency().code() != 'PTS'}"
                          class="glass-card"
                          th:classappend="${sig.direction().name() == 'BUY'} ? 'signal-card-buy' : 'signal-card-sell'">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
@@ -127,7 +130,7 @@
                 <h3 style="font-size:0.95rem;margin-bottom:0.75rem;">AI Doğal Dil Sorgu (Tool Calling)</h3>
                 <form action="/" method="get" style="display:flex;gap:0.5rem;">
                     <input type="text" name="q" th:value="${aiQuery}"
-                           placeholder="Örn: Bugün BIST'te en güçlü AL sinyalleri?"
+                           placeholder="Örn: Bugün emtialarda en güçlü AL sinyalleri?"
                            style="flex:1;padding:0.5rem 0.75rem;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-canvas);color:var(--text-primary);"/>
                     <button type="submit" class="btn">Sor</button>
                 </form>
@@ -170,19 +173,19 @@
                         <th>Durum</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <tr th:each="inst : ${instruments}">
+                    <tbody id="fsp-catalog-tbody">
+                    <tr th:each="inst : ${instruments}"
+                        th:if="${inst.exchange() != 'BIST'}">
                         <td>
                             <a th:href="@{'/instrument/' + ${inst.symbol().value()}}"
                                style="color:var(--text-primary);font-weight:600;text-decoration:none;"
-                               th:text="${inst.symbol().value()}">THYAO</a>
-                            <span th:if="${inst.delayedFeed()}" class="badge badge-degraded" style="font-size:0.65rem;">15dk Gecikmeli</span>
+                               th:text="${inst.symbol().value()} + ' · ' + ${inst.displayName()}">XAUUSD · Spot Altın</a>
                         </td>
-                        <td th:text="${inst.assetClass().displayNameTr()}">BIST Hisseleri</td>
-                        <td th:text="${inst.quoteCurrency().code()}">TRY</td>
+                        <td th:text="${inst.assetClass().displayNameTr()}">Emtia</td>
+                        <td th:text="${inst.quoteCurrency().code()}">USD</td>
                         <td>
-                            <span th:text="${inst.sessionOpen()} ? 'Seans Açık' : 'Seans Kapalı'"
-                                  style="font-size:0.75rem;color:var(--text-secondary);">Seans Açık</span>
+                            <span th:text="${inst.sessionOpen()} ? 'Seans Açık (24x5)' : 'Seans Kapalı'"
+                                  style="font-size:0.75rem;color:var(--color-buy);font-weight:600;">Seans Açık (24x5)</span>
                         </td>
                     </tr>
                     </tbody>
@@ -199,11 +202,12 @@
             <strong>Hızlı Enstrüman &amp; Komut Arama (⌘K)</strong>
             <button type="button" class="btn" onclick="document.getElementById('cmd-palette-backdrop').classList.remove('open')">ESC</button>
         </div>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <div id="fsp-cmd-palette-links" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
             <a th:each="inst : ${instruments}"
+               th:if="${inst.exchange() != 'BIST'}"
                th:href="@{'/instrument/' + ${inst.symbol().value()}}"
                class="btn tabular-nums"
-               th:text="${inst.symbol().value()} + ' (' + ${inst.quoteCurrency().code()} + ')'">EURUSD</a>
+               th:text="${inst.symbol().value()} + ' (' + ${inst.quoteCurrency().code()} + ')'">XAUUSD</a>
         </div>
     </div>
 </div>

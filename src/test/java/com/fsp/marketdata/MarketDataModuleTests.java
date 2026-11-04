@@ -31,34 +31,45 @@ class MarketDataModuleTests {
 
     @Test
     @Tag("FR-01")
-    void searchesInstrumentCatalogUnder100msAndResolvesThyaoInTryAndBistSession() {
+    void searchesInstrumentCatalogUnder100msIncludesAll18ForexCommoditiesAndExcludesBist() {
         TradingViewScannerAdapter scanner = new TradingViewScannerAdapter();
         OhlcvAdapter ohlcv = new OhlcvAdapter();
         List<Object> publishedEvents = new ArrayList<>();
         MarketDataApplicationService service = new MarketDataApplicationService(scanner, ohlcv, publishedEvents::add);
 
         long startNanos = System.nanoTime();
-        List<InstrumentDto> results = service.searchInstruments("THY", null);
+        List<InstrumentDto> results = service.searchInstruments("XAU", null);
         long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000;
 
         assertThat(elapsedMs).isLessThan(100L);
         assertThat(results).hasSize(1);
-        InstrumentDto thyao = results.getFirst();
-        assertThat(thyao.symbol()).isEqualTo(Symbol.of("THYAO"));
-        assertThat(thyao.exchange()).isEqualTo("BIST");
-        assertThat(thyao.assetClass()).isEqualTo(AssetClass.BIST_EQUITY);
-        assertThat(thyao.quoteCurrency()).isEqualTo(Currency.TRY);
-        assertThat(thyao.timezone()).isEqualTo(ZoneId.of("Europe/Istanbul"));
-        assertThat(thyao.delayedFeed()).isTrue();
+        InstrumentDto xauusd = results.getFirst();
+        assertThat(xauusd.symbol()).isEqualTo(Symbol.of("XAUUSD"));
+        assertThat(xauusd.exchange()).isEqualTo("OANDA");
+        assertThat(xauusd.assetClass()).isEqualTo(AssetClass.COMMODITY);
+        assertThat(xauusd.quoteCurrency()).isEqualTo(Currency.USD);
+        assertThat(xauusd.delayedFeed()).isFalse();
 
-        // Check BIST session open at 11:30 Istanbul and closed on Republic Day holiday (2026-10-29)
-        Instant openSessionInstant = ZonedDateTime.of(2026, 11, 4, 11, 30, 0, 0, ZoneId.of("Europe/Istanbul")).toInstant();
-        Instant afterHoursInstant = ZonedDateTime.of(2026, 11, 4, 19, 0, 0, 0, ZoneId.of("Europe/Istanbul")).toInstant();
-        Instant holidayInstant = ZonedDateTime.of(2026, 10, 29, 11, 30, 0, 0, ZoneId.of("Europe/Istanbul")).toInstant();
+        // BIST equities must not exist in the catalog
+        assertThat(service.searchInstruments("THYAO", null)).isEmpty();
+        assertThat(service.searchInstruments(null, AssetClass.BIST_EQUITY)).isEmpty();
 
-        assertThat(service.isSymbolOpenAt(Symbol.of("THYAO"), openSessionInstant)).isTrue();
-        assertThat(service.isSymbolOpenAt(Symbol.of("THYAO"), afterHoursInstant)).isFalse();
-        assertThat(service.isSymbolOpenAt(Symbol.of("THYAO"), holidayInstant)).isFalse();
+        // All 18 Forex commodities must be registered
+        List<InstrumentDto> commodities = service.searchInstruments(null, AssetClass.COMMODITY);
+        assertThat(commodities).hasSize(18);
+        assertThat(commodities).extracting(i -> i.symbol().value()).contains(
+                "XAUUSD", "XAGUSD", "XPTUSD", "XPDUSD",
+                "USOIL", "UKOIL", "NATGAS", "GASOLINE", "HEATOIL",
+                "COPPER", "ALUMINUM",
+                "WHEAT", "CORN", "SOYBN", "SUGAR", "COFFEE", "COCOA", "COTTON"
+        );
+
+        // Forex 24x5 session open on Wednesday and closed on Saturday
+        Instant wednesdayInstant = ZonedDateTime.of(2026, 11, 4, 14, 30, 0, 0, ZoneId.of("UTC")).toInstant();
+        Instant saturdayInstant = ZonedDateTime.of(2026, 11, 7, 14, 30, 0, 0, ZoneId.of("UTC")).toInstant();
+
+        assertThat(service.isSymbolOpenAt(Symbol.of("XAUUSD"), wednesdayInstant)).isTrue();
+        assertThat(service.isSymbolOpenAt(Symbol.of("XAUUSD"), saturdayInstant)).isFalse();
     }
 
     @Test
@@ -105,7 +116,7 @@ class MarketDataModuleTests {
         List<BarClosed> evaluated = service.getEvaluatedBars(eurusd, Timeframe.M5, 10);
         assertThat(evaluated).extracting(BarClosed::barIndex).containsExactly(0L, 1L, 2L);
 
-        int scanned = service.executeParallelScanCycle(Timeframe.M15, List.of(Symbol.of("EURUSD"), Symbol.of("THYAO"), Symbol.of("AAPL")));
+        int scanned = service.executeParallelScanCycle(Timeframe.M15, List.of(Symbol.of("EURUSD"), Symbol.of("XAUUSD"), Symbol.of("USOIL")));
         assertThat(scanned).isEqualTo(3);
     }
 }

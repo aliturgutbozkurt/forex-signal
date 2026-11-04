@@ -53,9 +53,15 @@ public class WebPlatformController {
     public void warmupInitialPipeline() {
         marketDataFacade.refreshLiveQuotes();
         List<Symbol> coreSymbols = List.of(
-                Symbol.of("EURUSD"),
-                Symbol.of("THYAO"),
                 Symbol.of("XAUUSD"),
+                Symbol.of("XAGUSD"),
+                Symbol.of("XPTUSD"),
+                Symbol.of("USOIL"),
+                Symbol.of("UKOIL"),
+                Symbol.of("NATGAS"),
+                Symbol.of("COPPER"),
+                Symbol.of("EURUSD"),
+                Symbol.of("GBPUSD"),
                 Symbol.of("AAPL"),
                 Symbol.of("NVDA")
         );

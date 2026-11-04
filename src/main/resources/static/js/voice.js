@@ -170,11 +170,70 @@
     },
     testSellVoice: () => {
       playDualToneChime(659, 440);
-      speakUtterance('THYAO, SAT sinyali, fiyat 312,50 lira', 'SELL', 1.05, 0.88, 'tr-TR');
+      speakUtterance('XAUUSD, SAT sinyali, fiyat 4062,70 dolar', 'SELL', 1.05, 0.88, 'tr-TR');
     }
   };
 
+  const FOREX_COMMODITIES = [
+    { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'XAGUSD', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'XPTUSD', name: 'Spot Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'XPDUSD', name: 'Spot Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'UKOIL', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'NATGAS', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'GASOLINE', name: 'RBOB Benzin (Galon / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'HEATOIL', name: 'Kalorifer Yakıtı (Heating Oil / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'COPPER', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'ALUMINUM', name: 'Alüminyum (Ton / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'WHEAT', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'CORN', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'SOYBN', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'SUGAR', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'COFFEE', name: 'Kahve (Coffee C / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'COCOA', name: 'Kakao (Cocoa / USD)', assetClass: 'Emtia', currency: 'USD' },
+    { symbol: 'COTTON', name: 'Pamuk (Cotton No. 2 / USD)', assetClass: 'Emtia', currency: 'USD' }
+  ];
+
+  function ensureAllCommoditiesInDashboard() {
+    const tbody = document.getElementById('fsp-catalog-tbody');
+    if (tbody) {
+      const existing = new Set(
+        Array.from(tbody.querySelectorAll('a')).map((a) => (a.textContent || '').split('·')[0].trim())
+      );
+      FOREX_COMMODITIES.slice().reverse().forEach((item) => {
+        if (!existing.has(item.symbol)) {
+          const tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td><a href="/instrument/' + item.symbol + '" style="color:var(--text-primary);font-weight:600;text-decoration:none;">' +
+            item.symbol + ' · ' + item.name + '</a></td>' +
+            '<td>' + item.assetClass + '</td>' +
+            '<td>' + item.currency + '</td>' +
+            '<td><span style="font-size:0.75rem;color:var(--color-buy);font-weight:600;">Seans Açık (24x5)</span></td>';
+          tbody.insertBefore(tr, tbody.firstChild);
+        }
+      });
+    }
+
+    const palette = document.getElementById('fsp-cmd-palette-links');
+    if (palette) {
+      const existingCmd = new Set(
+        Array.from(palette.querySelectorAll('a')).map((a) => (a.textContent || '').split('(')[0].trim())
+      );
+      FOREX_COMMODITIES.forEach((item) => {
+        if (!existingCmd.has(item.symbol)) {
+          const a = document.createElement('a');
+          a.href = '/instrument/' + item.symbol;
+          a.className = 'btn tabular-nums';
+          a.textContent = item.symbol + ' (' + item.currency + ')';
+          palette.appendChild(a);
+        }
+      });
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    ensureAllCommoditiesInDashboard();
     connectSseStream();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});

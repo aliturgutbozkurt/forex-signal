@@ -39,47 +39,85 @@ public class OhlcvAdapter implements MarketDataPort {
     );
 
     private static final Map<String, Double> BASE_PRICES = Map.ofEntries(
+            // Precious Metals
+            Map.entry("XAUUSD", 4062.71),
+            Map.entry("XAGUSD", 52.330),
+            Map.entry("XPTUSD", 1501.70),
+            Map.entry("XPDUSD", 1004.00),
+            // Energy Commodities
+            Map.entry("USOIL", 88.47),
+            Map.entry("UKOIL", 94.62),
+            Map.entry("NATGAS", 2.960),
+            Map.entry("GASOLINE", 2.7350),
+            Map.entry("HEATOIL", 4.2145),
+            // Industrial Metals
+            Map.entry("COPPER", 6.4150),
+            Map.entry("ALUMINUM", 3193.25),
+            // Agricultural & Soft Commodities
+            Map.entry("WHEAT", 598.50),
+            Map.entry("CORN", 444.25),
+            Map.entry("SOYBN", 1202.25),
+            Map.entry("SUGAR", 18.47),
+            Map.entry("COFFEE", 279.50),
+            Map.entry("COCOA", 5427.00),
+            Map.entry("COTTON", 78.15),
+            // Forex Pairs
             Map.entry("EURUSD", 1.12371),
             Map.entry("GBPUSD", 1.34733),
             Map.entry("USDJPY", 158.297),
+            Map.entry("USDCHF", 0.81709),
+            Map.entry("AUDUSD", 0.70090),
+            Map.entry("USDCAD", 1.39672),
+            Map.entry("NZDUSD", 0.56247),
             Map.entry("USDTRY", 50.0178),
-            Map.entry("THYAO", 291.25),
-            Map.entry("GARAN", 137.50),
-            Map.entry("ASELS", 353.75),
-            Map.entry("AKBNK", 66.20),
-            Map.entry("KCHOL", 203.00),
-            Map.entry("EREGL", 31.84),
+            // US Equities
             Map.entry("AAPL", 353.89),
             Map.entry("NVDA", 203.64),
             Map.entry("MSFT", 554.05),
             Map.entry("TSLA", 390.40),
-            Map.entry("XAUUSD", 4069.18),
-            Map.entry("XAGUSD", 52.41),
-            Map.entry("USOIL", 87.97),
-            Map.entry("XU100", 11478.13),
+            // Global Indices
             Map.entry("SPX500", 7710.25),
             Map.entry("NDX100", 28631.60)
     );
 
     private static final Map<String, String> TV_TICKER_TO_SYMBOL = Map.ofEntries(
+            // Precious Metals
+            Map.entry("OANDA:XAUUSD", "XAUUSD"),
+            Map.entry("COMEX:SI1!", "XAGUSD"),
+            Map.entry("NYMEX:PL1!", "XPTUSD"),
+            Map.entry("NYMEX:PA1!", "XPDUSD"),
+            // Energy Commodities
+            Map.entry("NYMEX:CL1!", "USOIL"),
+            Map.entry("ICEEUR:BRN1!", "UKOIL"),
+            Map.entry("NYMEX:NG1!", "NATGAS"),
+            Map.entry("NYMEX:RB1!", "GASOLINE"),
+            Map.entry("NYMEX:HO1!", "HEATOIL"),
+            // Industrial Metals
+            Map.entry("COMEX:HG1!", "COPPER"),
+            Map.entry("COMEX:ALI1!", "ALUMINUM"),
+            // Agricultural & Soft Commodities
+            Map.entry("CBOT:ZW1!", "WHEAT"),
+            Map.entry("CBOT:ZC1!", "CORN"),
+            Map.entry("CBOT:ZS1!", "SOYBN"),
+            Map.entry("ICEUS:SB1!", "SUGAR"),
+            Map.entry("ICEUS:KC1!", "COFFEE"),
+            Map.entry("ICEUS:CC1!", "COCOA"),
+            Map.entry("ICEUS:CT1!", "COTTON"),
+            // Forex Pairs
             Map.entry("FX:EURUSD", "EURUSD"),
             Map.entry("FX:GBPUSD", "GBPUSD"),
             Map.entry("FX:USDJPY", "USDJPY"),
+            Map.entry("FX:USDCHF", "USDCHF"),
+            Map.entry("FX:AUDUSD", "AUDUSD"),
+            Map.entry("FX:USDCAD", "USDCAD"),
+            Map.entry("FX:NZDUSD", "NZDUSD"),
             Map.entry("FX:USDTRY", "USDTRY"),
-            Map.entry("BIST:THYAO", "THYAO"),
-            Map.entry("BIST:GARAN", "GARAN"),
-            Map.entry("BIST:ASELS", "ASELS"),
-            Map.entry("BIST:AKBNK", "AKBNK"),
-            Map.entry("BIST:KCHOL", "KCHOL"),
-            Map.entry("BIST:EREGL", "EREGL"),
+            // US Equities
             Map.entry("NASDAQ:AAPL", "AAPL"),
             Map.entry("NASDAQ:NVDA", "NVDA"),
             Map.entry("NASDAQ:MSFT", "MSFT"),
             Map.entry("NASDAQ:TSLA", "TSLA"),
-            Map.entry("OANDA:XAUUSD", "XAUUSD"),
-            Map.entry("COMEX:SI1!", "XAGUSD"),
-            Map.entry("NYMEX:CL1!", "USOIL"),
-            Map.entry("BIST:XU100", "XU100"),
+            // Global Indices
             Map.entry("SP:SPX", "SPX500"),
             Map.entry("NASDAQ:NDX", "NDX100")
     );
@@ -209,9 +247,9 @@ public class OhlcvAdapter implements MarketDataPort {
 
     private static int decimalsForSymbol(String sym) {
         return switch (sym) {
-            case "EURUSD", "GBPUSD" -> 5;
-            case "USDTRY" -> 4;
-            case "USDJPY", "XAGUSD" -> 3;
+            case "EURUSD", "GBPUSD", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD" -> 5;
+            case "USDTRY", "GASOLINE", "HEATOIL", "COPPER" -> 4;
+            case "USDJPY", "XAGUSD", "NATGAS" -> 3;
             default -> 2;
         };
     }

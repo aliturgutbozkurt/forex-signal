@@ -125,19 +125,19 @@ public class AiInsightsApplicationService implements AiInsightsFacade {
             }
         }
 
-        // Tool 2: BIST / AL / SAT filter query
+        // Tool 2: Commodity / Forex / AL / SAT filter query
         invokedTools.add("list_signals(limit=20)");
         List<SignalDto> recent = signalFacade.listRecentSignals(20);
-        boolean filterBist = upper.contains("BIST") || upper.contains("BORSA");
+        boolean filterCommodity = upper.contains("EMTIA") || upper.contains("EMTİA") || upper.contains("ALTIN") || upper.contains("PETROL");
         Direction dirFilter = upper.contains("SAT") && !upper.contains("AL") ? Direction.SELL
                 : (upper.contains("AL") ? Direction.BUY : null);
 
         List<SignalDto> matched = recent.stream()
                 .filter(s -> {
                     if (dirFilter != null && s.direction() != dirFilter) return false;
-                    if (filterBist) {
+                    if (filterCommodity) {
                         return marketDataFacade.findInstrument(s.symbol())
-                                .map(i -> i.assetClass() == AssetClass.BIST_EQUITY || i.assetClass() == AssetClass.INDEX)
+                                .map(i -> i.assetClass() == AssetClass.COMMODITY)
                                 .orElse(false);
                     }
                     return true;

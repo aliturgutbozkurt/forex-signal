@@ -56,9 +56,23 @@
     function resolveTradingViewSymbol(meta) {
         var sym = (meta && meta.symbol) ? meta.symbol : 'XAUUSD';
         var ex = (meta && meta.exchange) ? meta.exchange : 'OANDA';
-        if (sym === 'SPX500') return 'FOREXCOM:SPXUSD';
-        if (sym === 'NDX100') return 'NASDAQ:NDX';
-        return ex + ':' + sym;
+        switch (sym) {
+            case 'NATGAS': return 'OANDA:NATGASUSD';
+            case 'GASOLINE': return 'NYMEX:RB1!';
+            case 'HEATOIL': return 'NYMEX:HO1!';
+            case 'COPPER': return 'OANDA:XCUUSD';
+            case 'ALUMINUM': return 'COMEX:ALI1!';
+            case 'WHEAT': return 'OANDA:WHEATUSD';
+            case 'CORN': return 'OANDA:CORNUSD';
+            case 'SOYBN': return 'OANDA:SOYBNUSD';
+            case 'SUGAR': return 'OANDA:SUGARUSD';
+            case 'COFFEE': return 'ICEUS:KC1!';
+            case 'COCOA': return 'ICEUS:CC1!';
+            case 'COTTON': return 'ICEUS:CT1!';
+            case 'SPX500': return 'FOREXCOM:SPXUSD';
+            case 'NDX100': return 'NASDAQ:NDX';
+            default: return ex + ':' + sym;
+        }
     }
 
     function resolveTradingViewInterval(tf) {
@@ -963,8 +977,61 @@
         };
     }
 
+    var INSTRUMENT_DIRECTORY = {
+        'XAUUSD': { exchange: 'OANDA', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', price: 4062.71 },
+        'XAGUSD': { exchange: 'OANDA', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', price: 52.330 },
+        'XPTUSD': { exchange: 'OANDA', name: 'Spot Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD', price: 1501.70 },
+        'XPDUSD': { exchange: 'OANDA', name: 'Spot Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD', price: 1004.00 },
+        'USOIL': { exchange: 'TVC', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', price: 88.47 },
+        'UKOIL': { exchange: 'TVC', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', price: 94.62 },
+        'NATGAS': { exchange: 'OANDA', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD', price: 2.960 },
+        'GASOLINE': { exchange: 'NYMEX', name: 'RBOB Benzin (Galon / USD)', assetClass: 'Emtia', currency: 'USD', price: 2.7350 },
+        'HEATOIL': { exchange: 'NYMEX', name: 'Kalorifer Yakıtı (Heating Oil / USD)', assetClass: 'Emtia', currency: 'USD', price: 4.2145 },
+        'COPPER': { exchange: 'OANDA', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD', price: 6.4150 },
+        'ALUMINUM': { exchange: 'COMEX', name: 'Alüminyum (Ton / USD)', assetClass: 'Emtia', currency: 'USD', price: 3193.25 },
+        'WHEAT': { exchange: 'OANDA', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD', price: 598.50 },
+        'CORN': { exchange: 'OANDA', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD', price: 444.25 },
+        'SOYBN': { exchange: 'OANDA', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD', price: 1202.25 },
+        'SUGAR': { exchange: 'OANDA', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD', price: 18.47 },
+        'COFFEE': { exchange: 'ICEUS', name: 'Kahve (Coffee C / USD)', assetClass: 'Emtia', currency: 'USD', price: 279.50 },
+        'COCOA': { exchange: 'ICEUS', name: 'Kakao (Cocoa / USD)', assetClass: 'Emtia', currency: 'USD', price: 5427.00 },
+        'COTTON': { exchange: 'ICEUS', name: 'Pamuk (Cotton No. 2 / USD)', assetClass: 'Emtia', currency: 'USD', price: 78.15 },
+        'EURUSD': { exchange: 'FX', name: 'Euro / ABD Doları', assetClass: 'Forex', currency: 'USD', price: 1.12371 },
+        'GBPUSD': { exchange: 'FX', name: 'İngiliz Sterlini / ABD Doları', assetClass: 'Forex', currency: 'USD', price: 1.34733 },
+        'USDJPY': { exchange: 'FX', name: 'ABD Doları / Japon Yeni', assetClass: 'Forex', currency: 'JPY', price: 158.297 },
+        'USDCHF': { exchange: 'FX', name: 'ABD Doları / İsviçre Frangı', assetClass: 'Forex', currency: 'USD', price: 0.81709 },
+        'AUDUSD': { exchange: 'FX', name: 'Avustralya Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', price: 0.70090 },
+        'USDCAD': { exchange: 'FX', name: 'ABD Doları / Kanada Doları', assetClass: 'Forex', currency: 'USD', price: 1.39672 },
+        'NZDUSD': { exchange: 'FX', name: 'Yeni Zelanda Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', price: 0.56247 },
+        'USDTRY': { exchange: 'FX', name: 'ABD Doları / Türk Lirası', assetClass: 'Forex', currency: 'TRY', price: 50.0178 }
+    };
+
+    function syncMetaWithUrlPath(meta) {
+        var match = window.location.pathname.match(/\/instrument\/([A-Za-z0-9]+)/);
+        if (!match) return meta;
+        var reqSym = match[1].toUpperCase();
+        var dir = INSTRUMENT_DIRECTORY[reqSym];
+        if (dir) {
+            meta.symbol = reqSym;
+            meta.exchange = dir.exchange;
+            meta.currency = dir.currency;
+            meta.close = dir.price;
+            document.title = reqSym + ' (' + (meta.timeframeLabel || meta.timeframe || '15m') + ') — Forex Sinyal Platformu (FSP)';
+            var h1 = document.querySelector('.app-header h1');
+            if (h1) h1.textContent = reqSym + ' · ' + dir.name;
+            var h2 = document.querySelector('section.glass-card h2');
+            if (h2) h2.textContent = dir.exchange + ':' + reqSym + ' · ' + (meta.timeframeLabel || '15m') + ' (' + (meta.timeframe || 'M15') + ') — TradingView Grafiği & Lightweight Charts';
+            var tfLinks = document.querySelectorAll('.app-nav a.btn');
+            for (var i = 0; i < tfLinks.length; i++) {
+                var href = tfLinks[i].getAttribute('href') || '';
+                tfLinks[i].setAttribute('href', href.replace(/\/instrument\/[A-Za-z0-9]+/, '/instrument/' + reqSym));
+            }
+        }
+        return meta;
+    }
+
     function boot() {
-        var meta = window.FSP_CHART_META || {};
+        var meta = syncMetaWithUrlPath(window.FSP_CHART_META || {});
         var bars = prepareTimeframeBars(meta);
         var lwHandle = initTradingViewPrimaryChart(meta, bars);
         var canvasHandle = initFspCanvasChart(meta, bars);

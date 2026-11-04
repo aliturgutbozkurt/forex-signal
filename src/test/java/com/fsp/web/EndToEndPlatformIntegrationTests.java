@@ -60,17 +60,19 @@ class EndToEndPlatformIntegrationTests {
 
     @Test
     void dashboardInstrumentDetailAndStyleguideRenderWithSecurityHeadersAndLegalDisclaimer() throws Exception {
-        mockMvc.perform(get("/").param("q", "Bugün BIST'te en güçlü AL sinyalleri?"))
+        mockMvc.perform(get("/").param("q", "Bugün emtialarda en güçlü AL sinyalleri?"))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Content-Security-Policy"))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("karar destek aracıdır")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Piyasa Karar Özeti (AL / SAT / TUT)")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("THYAO")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("XAUUSD")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("USOIL")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("NATGAS")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("EURUSD")));
 
-        mockMvc.perform(get("/instrument/THYAO").param("tf", "H1"))
+        mockMvc.perform(get("/instrument/XAUUSD").param("tf", "H1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("15dk Gecikmeli")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Spot Altın")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("tradingview_advanced_chart")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Gösterge Karar Özeti")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("1m (M1)")))
@@ -97,12 +99,12 @@ class EndToEndPlatformIntegrationTests {
 
     @Test
     void apiEndpointsForSearchAiMcpBacktestAndPasskeyOperateWithinLatencyBudget() throws Exception {
-        mockMvc.perform(get("/api/instruments").param("q", "THY"))
+        mockMvc.perform(get("/api/instruments").param("q", "XAU"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].symbol.value").value("THYAO"))
-                .andExpect(jsonPath("$[0].quoteCurrency").value("TRY"));
+                .andExpect(jsonPath("$[0].symbol.value").value("XAUUSD"))
+                .andExpect(jsonPath("$[0].quoteCurrency").value("USD"));
 
-        mockMvc.perform(get("/api/ai/query").param("q", "THYAO için H1'de durum nedir?"))
+        mockMvc.perform(get("/api/ai/query").param("q", "XAUUSD için H1'de durum nedir?"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answerTr").isNotEmpty())
                 .andExpect(jsonPath("$.invokedTools").isArray());
