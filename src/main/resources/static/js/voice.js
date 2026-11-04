@@ -93,6 +93,53 @@
         return 2;
     }
 
+    function getSessionInfo(inst) {
+        var now = new Date();
+        var day = now.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
+        var mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+        var sym = inst.symbol;
+
+        // Weekend closure across all Forex/Commodity/Equity markets (Fri 22:00 UTC -> Sun 22:00 UTC)
+        if (day === 6 || (day === 5 && mins >= 22 * 60) || (day === 0 && mins < 22 * 60)) {
+            return { open: false, label: '○ Seans Kapalı (Hafta Sonu · Son Kapanış Sabit)' };
+        }
+
+        // US Equities (NASDAQ: 14:30 - 21:00 UTC, Mon-Fri)
+        if (inst.assetClass === 'ABD Hisse') {
+            if (day >= 1 && day <= 5 && mins >= (14 * 60 + 30) && mins < (21 * 60)) {
+                return { open: true, label: '● Seans Açık (NASDAQ)' };
+            }
+            return { open: false, label: '○ Seans Kapalı (NASDAQ 17:30–00:00 · Sinyaller Sabit)' };
+        }
+
+        // ICE Soft Commodities (SUGAR, COFFEE, COCOA, COTTON: 09:00 - 18:30 UTC, Mon-Fri)
+        if (sym === 'SUGAR' || sym === 'COFFEE' || sym === 'COCOA' || sym === 'COTTON') {
+            if (day >= 1 && day <= 5 && mins >= (9 * 60) && mins < (18 * 60 + 30)) {
+                return { open: true, label: '● Seans Açık (ICE)' };
+            }
+            return { open: false, label: '○ Seans Kapalı (ICE 12:00–21:30 · Sinyaller Sabit)' };
+        }
+
+        // CBOT Agricultural Grains (WHEAT, CORN, SOYBN: Closed 19:20-24:00 UTC & 13:45-14:30 UTC)
+        if (sym === 'WHEAT' || sym === 'CORN' || sym === 'SOYBN') {
+            var inBreak = (mins >= (13 * 60 + 45) && mins < (14 * 60 + 30)) || (mins >= (19 * 60 + 20));
+            if (!inBreak && day >= 1 && day <= 5) {
+                return { open: true, label: '● Seans Açık (CBOT)' };
+            }
+            return { open: false, label: '○ Seans Kapalı (CBOT Molası · Sinyaller Sabit)' };
+        }
+
+        // CME / COMEX / NYMEX Metals, Energy & Global Indices: Daily maintenance break 21:00 - 22:00 UTC (00:00 - 01:00 TSİ)
+        if (inst.assetClass === 'Emtia' || inst.assetClass === 'Endeks') {
+            if (mins >= 21 * 60 && mins < 22 * 60) {
+                return { open: false, label: '○ Seans Molası (00:00–01:00 · Sinyaller Sabit)' };
+            }
+            return { open: true, label: '● Seans Açık (23x5)' };
+        }
+
+        return { open: true, label: '● Seans Açık (24x5)' };
+    }
+
     function formatFixedTr(val, digits) {
         if (val === null || val === undefined || isNaN(val)) return '-';
         return Number(val).toFixed(digits).replace('.', ',');
@@ -741,6 +788,8 @@
         var buyPct = (curEval.buyCount * 100.0) / totalRows;
         var holdPct = (curEval.holdCount * 100.0) / totalRows;
         var sellPct = (curEval.sellCount * 100.0) / totalRows;
+        var sess = getSessionInfo(inst);
+        var sessColor = sess.open ? 'var(--signal-buy)' : 'var(--text-muted)';
 
         return '<article id="inst-' + sym + '" class="inst-accordion' + (isOpen ? ' open' : '') + '"'
             + ' data-symbol="' + sym + '" data-class="' + inst.assetClass + '" data-name="' + inst.name.toLowerCase() + '">'
@@ -755,7 +804,7 @@
             + '        <span class="badge tabular-nums" style="font-size:0.65rem;padding:0.1rem 0.45rem;">' + inst.currency + '</span>'
             + '      </div>'
             + '      <div class="tabular-nums" style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.12rem;display:flex;gap:0.55rem;flex-wrap:wrap;align-items:center;">'
-            + '        <span style="color:var(--signal-buy);font-weight:600;">● Açık (24x5)</span>'
+            + '        <span id="hdr-session-' + sym + '" style="color:' + sessColor + ';font-weight:600;">' + sess.label + '</span>'
             + '        <span>Fiyat: <strong id="hdr-price-' + sym + '" style="color:var(--text-primary);">' + formatFixedTr(curEval.close, curEval.decimals) + ' ' + inst.currency + '</strong></span>'
             + '        <span id="hdr-tf-label-' + sym + '">TF: <strong>' + selectedTfObj.label + ' (' + selectedTf + ')</strong></span>'
             + '        <span id="hdr-regime-' + sym + '" class="badge ' + curEval.regimeBadgeClass + '" style="font-size:0.62rem;padding:0.06rem 0.4rem;">' + curEval.regimeLabel + '</span>'
@@ -982,6 +1031,8 @@
             + String(now.getSeconds()).padStart(2, '0');
 
         // 1. Update Accordion Header elements
+        var sess = getSessionInfo(inst);
+        var hdrSession = document.getElementById('hdr-session-' + sym);
         var hdrPrice = document.getElementById('hdr-price-' + sym);
         var hdrTfLabel = document.getElementById('hdr-tf-label-' + sym);
         var hdrRegime = document.getElementById('hdr-regime-' + sym);
@@ -990,6 +1041,10 @@
         var hdrHold = document.getElementById('hdr-hold-' + sym);
         var hdrOverall = document.getElementById('hdr-overall-' + sym);
 
+        if (hdrSession) {
+            hdrSession.textContent = sess.label;
+            hdrSession.style.color = sess.open ? 'var(--signal-buy)' : 'var(--text-muted)';
+        }
         if (hdrPrice) hdrPrice.textContent = formatFixedTr(curEval.close, curEval.decimals) + ' ' + inst.currency;
         if (hdrTfLabel) hdrTfLabel.innerHTML = 'TF: <strong>' + selTfObj.label + ' (' + selTf + ')</strong>';
         if (hdrRegime) {
@@ -1079,7 +1134,13 @@
             if (sumBarSell) sumBarSell.style.width = ((curEval.sellCount * 100.0) / total) + '%';
 
             if (indClock) {
-                indClock.textContent = '● Canlı O(1) Motor (' + selTfObj.label + ') · ' + clockStr;
+                if (sess.open) {
+                    indClock.textContent = '● Canlı O(1) Motor (' + selTfObj.label + ') · ' + clockStr;
+                    indClock.style.color = 'var(--signal-buy)';
+                } else {
+                    indClock.textContent = '○ Seans Kapalı (' + selTfObj.label + ') · Son Kapanış Sabit';
+                    indClock.style.color = 'var(--text-muted)';
+                }
             }
             if (indTbody) {
                 indTbody.innerHTML = buildSelectedTfIndicatorRowsHtml(curEval);
@@ -1158,15 +1219,113 @@
         }, 60);
 
         // Single-Flight Shared Hot Cache (Stale-While-Revalidate):
-        // Fetches external data as a single collector user once per TTL window and serves all tabs/users in 0ms from cache
+        // Fetches external data as a single collector user once per TTL window and serves all tabs/users in 0ms from cache.
+        // Never mutates prices or signals synthetically; freezes signals when a market session is closed.
         var sharedCache = {
-            KEY: 'fsp_shared_hot_cache_v1',
-            LOCK_KEY: 'fsp_single_flight_lock_v1',
-            TTL_MS: 2500,
+            KEY: 'fsp_shared_hot_cache_v2',
+            TTL_MS: 5000,
             singleFlightFetches: 1,
             cacheHits: 1,
             inFlight: false
         };
+
+        function applyRealPricesFromCache(pricesMap) {
+            if (!pricesMap) return;
+            var anyChanged = false;
+            var nowIso = new Date().toISOString();
+
+            for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {
+                var inst = CATALOG_INSTRUMENTS[i];
+                var sym = inst.symbol;
+                var sess = getSessionInfo(inst);
+                var rawNewPrice = Number(pricesMap[sym]);
+                if (!isFinite(rawNewPrice) || rawNewPrice <= 0) continue;
+
+                var decimals = detectDecimals(rawNewPrice, sym);
+                var mult = Math.pow(10, decimals);
+                var newPrice = Math.round(rawNewPrice * mult) / mult;
+
+                // Only update bars & signals if the market session is OPEN (or initial seed sync) AND real price changed
+                var prevClose = state.evalBySymbolTf[sym] && state.evalBySymbolTf[sym]['M15']
+                    ? state.evalBySymbolTf[sym]['M15'].close
+                    : inst.price;
+
+                if (!sess.open && state.initialRealSeedDone) {
+                    // Market is closed: keep last close and AL/SAT/TUT signals 100% frozen!
+                    continue;
+                }
+
+                if (Math.abs(newPrice - prevClose) > (0.1 / mult)) {
+                    var ratio = prevClose > 0 ? (newPrice / prevClose) : 1.0;
+                    inst.price = newPrice;
+                    for (var t = 0; t < TIMEFRAMES.length; t++) {
+                        var tfObj = TIMEFRAMES[t];
+                        var bars = state.barsBySymbolTf[sym][tfObj.code];
+                        if (!bars || !bars.length) continue;
+                        if (!state.initialRealSeedDone && Math.abs(ratio - 1.0) > 0.002) {
+                            // Rescale historical series once on initial live price sync so indicators stay aligned with real level
+                            for (var b = 0; b < bars.length; b++) {
+                                bars[b].open = Math.round(bars[b].open * ratio * mult) / mult;
+                                bars[b].high = Math.round(bars[b].high * ratio * mult) / mult;
+                                bars[b].low = Math.round(bars[b].low * ratio * mult) / mult;
+                                bars[b].close = Math.round(bars[b].close * ratio * mult) / mult;
+                            }
+                        }
+                        var last = bars[bars.length - 1];
+                        last.close = newPrice;
+                        if (newPrice > last.high) last.high = newPrice;
+                        if (newPrice < last.low) last.low = newPrice;
+                        last.closeTime = nowIso;
+                        state.evalBySymbolTf[sym][tfObj.code] = evaluateIndicators(inst, tfObj, bars);
+                    }
+                    updateInstrumentDom(inst, false);
+                    anyChanged = true;
+                }
+            }
+            state.initialRealSeedDone = true;
+            if (anyChanged) {
+                updateGlobalSummaryCounters();
+            }
+        }
+
+        function fetchTradingViewScannerSingleFlight() {
+            var tickers = [];
+            var tickerToSym = {};
+            for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {
+                var inst = CATALOG_INSTRUMENTS[i];
+                tickers.push(inst.tvSymbol);
+                tickerToSym[inst.tvSymbol.toUpperCase()] = inst.symbol;
+            }
+            var bodyJson = JSON.stringify({
+                symbols: { tickers: tickers, query: { types: [] } },
+                columns: ['close']
+            });
+            return fetch('https://scanner.tradingview.com/global/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: bodyJson
+            })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('tv-status-' + r.status);
+                    return r.json();
+                })
+                .then(function (resp) {
+                    var priceMap = {};
+                    if (resp && Array.isArray(resp.data)) {
+                        for (var k = 0; k < resp.data.length; k++) {
+                            var row = resp.data[k];
+                            if (row && row.s && Array.isArray(row.d) && row.d.length > 0) {
+                                var sym = tickerToSym[String(row.s).toUpperCase()];
+                                var closeVal = Number(row.d[0]);
+                                if (sym && isFinite(closeVal) && closeVal > 0) {
+                                    priceMap[sym] = closeVal;
+                                }
+                            }
+                        }
+                    }
+                    return priceMap;
+                });
+        }
 
         function syncSharedHotCache() {
             var nowMs = Date.now();
@@ -1176,12 +1335,7 @@
                 if (raw) {
                     var parsed = JSON.parse(raw);
                     if (parsed && parsed.prices) {
-                        for (var pIdx = 0; pIdx < CATALOG_INSTRUMENTS.length; pIdx++) {
-                            var cInst = CATALOG_INSTRUMENTS[pIdx];
-                            if (parsed.prices[cInst.symbol] && parsed.prices[cInst.symbol] > 0) {
-                                cInst.price = parsed.prices[cInst.symbol];
-                            }
-                        }
+                        applyRealPricesFromCache(parsed.prices);
                     }
                     if (parsed && parsed.updatedAt && (nowMs - parsed.updatedAt) < sharedCache.TTL_MS) {
                         updateCacheBadgeUi(parsed.singleFlightFetches || sharedCache.singleFlightFetches, sharedCache.cacheHits);
@@ -1206,12 +1360,7 @@
                     sharedCache.singleFlightFetches = snap.singleFlightFetchCount || (sharedCache.singleFlightFetches + 1);
                     sharedCache.cacheHits = snap.cacheServedCount || sharedCache.cacheHits;
                     if (snap && snap.prices) {
-                        for (var j = 0; j < CATALOG_INSTRUMENTS.length; j++) {
-                            var item = CATALOG_INSTRUMENTS[j];
-                            if (snap.prices[item.symbol] && snap.prices[item.symbol] > 0) {
-                                item.price = snap.prices[item.symbol];
-                            }
-                        }
+                        applyRealPricesFromCache(snap.prices);
                         try {
                             if (window.localStorage) {
                                 window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
@@ -1227,24 +1376,28 @@
                     sharedCache.inFlight = false;
                 })
                 .catch(function () {
-                    // Static / GitHub Pages environment: single-flight collector writes shared hot cache snapshot to localStorage
-                    sharedCache.singleFlightFetches++;
-                    var priceMap = {};
-                    for (var m = 0; m < CATALOG_INSTRUMENTS.length; m++) {
-                        priceMap[CATALOG_INSTRUMENTS[m].symbol] = CATALOG_INSTRUMENTS[m].price;
-                    }
-                    try {
-                        if (window.localStorage) {
-                            window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
-                                updatedAt: Date.now(),
-                                singleFlightFetches: sharedCache.singleFlightFetches,
-                                prices: priceMap
-                            }));
-                        }
-                    } catch (err) {
-                    }
-                    updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
-                    sharedCache.inFlight = false;
+                    // Static / GitHub Pages environment: single-flight collector fetches directly from TradingView Scanner
+                    fetchTradingViewScannerSingleFlight()
+                        .then(function (tvPrices) {
+                            sharedCache.singleFlightFetches++;
+                            applyRealPricesFromCache(tvPrices);
+                            try {
+                                if (window.localStorage) {
+                                    window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
+                                        updatedAt: Date.now(),
+                                        singleFlightFetches: sharedCache.singleFlightFetches,
+                                        prices: tvPrices
+                                    }));
+                                }
+                            } catch (err) {
+                            }
+                            updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                            sharedCache.inFlight = false;
+                        })
+                        .catch(function () {
+                            updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                            sharedCache.inFlight = false;
+                        });
                 });
         }
 
@@ -1258,7 +1411,7 @@
 
         syncSharedHotCache();
 
-        // Start 2.5s dynamic O(1) live tick loop served from the Shared Hot Cache
+        // Check real market session status & shared hot cache every 5s (NO synthetic price ticks; closed markets stay 100% fixed)
         setInterval(function () {
             state.tickCount++;
             syncSharedHotCache();
@@ -1266,38 +1419,28 @@
             var clockStr = String(now.getHours()).padStart(2, '0') + ':'
                 + String(now.getMinutes()).padStart(2, '0') + ':'
                 + String(now.getSeconds()).padStart(2, '0');
-            var globalClockEl = document.getElementById('fsp-global-live-clock');
-            if (globalClockEl) {
-                globalClockEl.textContent = '● Paylaşımlı Anlık Cache & O(1) Motor · Son Güncelleme: ' + clockStr;
-            }
 
+            var openCount = 0;
             for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {
                 var inst = CATALOG_INSTRUMENTS[i];
-                var sym = inst.symbol;
-                var decimals = detectDecimals(inst.price, sym);
-                var mult = Math.pow(10, decimals);
-
-                for (var t = 0; t < TIMEFRAMES.length; t++) {
-                    var tfObj = TIMEFRAMES[t];
-                    var bars = state.barsBySymbolTf[sym][tfObj.code];
-                    var last = bars[bars.length - 1];
-                    var phase = state.tickCount * 0.62 + i * 1.3 + t * 0.9;
-                    var deltaPct = (Math.sin(phase) * 0.0005 + Math.cos(phase * 0.41) * 0.00035) * tfObj.amp;
-                    var nextClose = Math.round(last.close * (1.0 + deltaPct) * mult) / mult;
-                    last.close = nextClose;
-                    if (nextClose > last.high) last.high = nextClose;
-                    if (nextClose < last.low) last.low = nextClose;
-                    last.volume = Math.round(last.volume + 30 + Math.abs(Math.sin(phase)) * 120);
-                    last.closeTime = now.toISOString();
-
-                    state.evalBySymbolTf[sym][tfObj.code] = evaluateIndicators(inst, tfObj, bars);
+                var sess = getSessionInfo(inst);
+                if (sess.open) openCount++;
+                var hdrSession = document.getElementById('hdr-session-' + inst.symbol);
+                if (hdrSession) {
+                    hdrSession.textContent = sess.label;
+                    hdrSession.style.color = sess.open ? 'var(--signal-buy)' : 'var(--text-muted)';
                 }
-
-                updateInstrumentDom(inst, false);
             }
 
-            updateGlobalSummaryCounters();
-        }, 2500);
+            var globalClockEl = document.getElementById('fsp-global-live-clock');
+            if (globalClockEl) {
+                if (openCount === 0) {
+                    globalClockEl.textContent = '○ Piyasalar Kapalı (Hafta Sonu / Seans Dışı) · Sinyaller Son Kapanışta Sabit · ' + clockStr;
+                } else {
+                    globalClockEl.textContent = '● Açık Seans: ' + openCount + '/' + CATALOG_INSTRUMENTS.length + ' · Kapalı Piyasa Sinyalleri Sabit · ' + clockStr;
+                }
+            }
+        }, 5000);
     }
 
     window.FspTerminal = {

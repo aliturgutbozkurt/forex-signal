@@ -1037,30 +1037,32 @@
         var canvasHandle = initFspCanvasChart(meta, bars);
         computeAndRenderDynamicIndicators(meta, bars);
 
-        // Live time-driven dynamic update every 2.5 seconds
-        var tickCounter = 0;
+        // Poll real shared market cache every 5s; never mutate prices synthetically or when market is closed
         var sym = meta.symbol || 'XAUUSD';
-        var tf = meta.timeframe || 'M15';
-        var amp = TF_AMP_MAP[tf] || 1.0;
         var decimals = detectDecimals(bars[bars.length - 1].close, sym);
         var mult = Math.pow(10, decimals);
 
         setInterval(function () {
-            tickCounter++;
-            var last = bars[bars.length - 1];
-            var phase = tickCounter * 0.65 + tf.charCodeAt(0);
-            var deltaPct = (Math.sin(phase) * 0.00055 + Math.cos(phase * 0.43) * 0.00035) * amp;
-            var nextClose = Math.round(last.close * (1.0 + deltaPct) * mult) / mult;
-            last.close = nextClose;
-            if (nextClose > last.high) last.high = nextClose;
-            if (nextClose < last.low) last.low = nextClose;
-            last.volume = Math.round(last.volume + 35 + Math.abs(Math.sin(phase)) * 140);
-            last.closeTime = new Date().toISOString();
+            fetch('/api/market-cache', { cache: 'no-store' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (snap) {
+                    if (!snap || !snap.prices || !snap.prices[sym]) return;
+                    var newClose = Math.round(Number(snap.prices[sym]) * mult) / mult;
+                    var last = bars[bars.length - 1];
+                    if (!isFinite(newClose) || newClose <= 0 || Math.abs(newClose - last.close) <= (0.1 / mult)) {
+                        return;
+                    }
+                    last.close = newClose;
+                    if (newClose > last.high) last.high = newClose;
+                    if (newClose < last.low) last.low = newClose;
+                    last.closeTime = new Date().toISOString();
 
-            computeAndRenderDynamicIndicators(meta, bars);
-            if (lwHandle && typeof lwHandle.refresh === 'function') lwHandle.refresh(bars);
-            if (canvasHandle && typeof canvasHandle.refresh === 'function') canvasHandle.refresh();
-        }, 2500);
+                    computeAndRenderDynamicIndicators(meta, bars);
+                    if (lwHandle && typeof lwHandle.refresh === 'function') lwHandle.refresh(bars);
+                    if (canvasHandle && typeof canvasHandle.refresh === 'function') canvasHandle.refresh();
+                })
+                .catch(function () {});
+        }, 5000);
     }
 
     if (document.readyState === 'loading') {
