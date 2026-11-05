@@ -156,12 +156,15 @@ public class OhlcvAdapter implements MarketDataPort {
                 .orElse("");
         this.cachedBatchPayload = "{\"symbols\":{\"tickers\":[" + tickersJson + "],\"query\":{\"types\":[]}},\"columns\":[\"close\"]}";
 
+        // Initial synchronous Single-Flight fetch so cache and tvApiConnected are immediately warm on boot
+        executeSingleFlightFetch();
+
         // Background single-flight collector daemon: fetches as one user every 2.5s and keeps Shared Hot Cache fresh
         Thread collectorThread = Thread.ofVirtual().name("fsp-single-flight-cache-collector").unstarted(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    executeSingleFlightFetch();
                     Thread.sleep(SHARED_CACHE_TTL_MS);
+                    executeSingleFlightFetch();
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     break;
