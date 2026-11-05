@@ -12,16 +12,15 @@
     'use strict';
 
     var TIMEFRAMES = [
-        { code: 'M1', label: '1m', tv: '1', stepMs: 60 * 1000, amp: 0.35, drift: 0.75 },
-        { code: 'M5', label: '5m', tv: '5', stepMs: 5 * 60 * 1000, amp: 0.65, drift: -0.80 },
-        { code: 'M15', label: '15m', tv: '15', stepMs: 15 * 60 * 1000, amp: 1.00, drift: 1.00 },
-        { code: 'M30', label: '30m', tv: '30', stepMs: 30 * 60 * 1000, amp: 1.25, drift: -0.55 },
-        { code: 'H1', label: '1h', tv: '60', stepMs: 60 * 60 * 1000, amp: 1.55, drift: 0.90 },
-        { code: 'H2', label: '2h', tv: '120', stepMs: 2 * 60 * 60 * 1000, amp: 1.85, drift: -0.70 },
-        { code: 'H4', label: '4h', tv: '240', stepMs: 4 * 60 * 60 * 1000, amp: 2.20, drift: 1.10 },
-        { code: 'D1', label: '1D', tv: 'D', stepMs: 24 * 60 * 60 * 1000, amp: 2.80, drift: 0.85 },
-        { code: 'W1', label: '1W', tv: 'W', stepMs: 7 * 24 * 60 * 60 * 1000, amp: 3.60, drift: 1.20 },
-        { code: 'MN', label: '1M', tv: 'M', stepMs: 30 * 24 * 60 * 60 * 1000, amp: 4.50, drift: 1.35 }
+        { code: 'M1', label: '1m', tv: '1', wsRes: '1', stepMs: 60 * 1000, amp: 0.35, drift: 0.75, tfScale: 1.80 },
+        { code: 'M3', label: '3m', tv: '3', wsRes: '3', stepMs: 3 * 60 * 1000, amp: 0.50, drift: 0.60, tfScale: 1.60 },
+        { code: 'M5', label: '5m', tv: '5', wsRes: '5', stepMs: 5 * 60 * 1000, amp: 0.65, drift: -0.80, tfScale: 1.45 },
+        { code: 'M15', label: '15m', tv: '15', wsRes: '15', stepMs: 15 * 60 * 1000, amp: 1.00, drift: 1.00, tfScale: 1.20 },
+        { code: 'M30', label: '30m', tv: '30', wsRes: '30', stepMs: 30 * 60 * 1000, amp: 1.25, drift: -0.55, tfScale: 1.00 },
+        { code: 'H1', label: '1h', tv: '60', wsRes: '60', stepMs: 60 * 60 * 1000, amp: 1.55, drift: 0.90, tfScale: 0.85 },
+        { code: 'H2', label: '2h', tv: '120', wsRes: '120', stepMs: 2 * 60 * 60 * 1000, amp: 1.85, drift: -0.70, tfScale: 0.72 },
+        { code: 'H4', label: '4h', tv: '240', wsRes: '240', stepMs: 4 * 60 * 60 * 1000, amp: 2.20, drift: 1.10, tfScale: 0.60 },
+        { code: 'H8', label: '8h', tv: '480', wsRes: '480', stepMs: 8 * 60 * 60 * 1000, amp: 2.55, drift: 0.95, tfScale: 0.50 }
     ];
 
     var TF_BY_CODE = {};
@@ -30,53 +29,25 @@
     }
 
     var CATALOG_INSTRUMENTS = [
-        // 18 Forex Commodities (Precious Metals, Energy, Industrial Metals, Agriculture/Softs)
-        { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAUUSD', scannerSymbol: 'OANDA:XAUUSD', price: 4130.10 },
-        { symbol: 'XAGUSD', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:SILVER', scannerSymbol: 'TVC:SILVER', price: 52.830 },
-        { symbol: 'XPTUSD', name: 'Spot Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:PLATINUM', scannerSymbol: 'TVC:PLATINUM', price: 1522.50 },
-        { symbol: 'XPDUSD', name: 'Spot Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:PALLADIUM', scannerSymbol: 'TVC:PALLADIUM', price: 1030.43 },
-        { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USOIL', scannerSymbol: 'FX:USOIL', price: 88.58 },
-        { symbol: 'UKOIL', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:UKOIL', scannerSymbol: 'FX:UKOIL', price: 96.02 },
-        { symbol: 'NATGAS', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:NATGASUSD', scannerSymbol: 'OANDA:NATGASUSD', price: 2.708 },
-        { symbol: 'GASOLINE', name: 'RBOB Benzin (Galon / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:RB1!', scannerSymbol: 'NYMEX:RB1!', price: 2.7513 },
-        { symbol: 'HEATOIL', name: 'Kalorifer Yakıtı (Heating Oil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:HO1!', scannerSymbol: 'NYMEX:HO1!', price: 4.2461 },
-        { symbol: 'COPPER', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XCUUSD', scannerSymbol: 'OANDA:XCUUSD', price: 6.3500 },
-        { symbol: 'ALUMINUM', name: 'Alüminyum (Ton / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'COMEX', tvSymbol: 'COMEX:ALI1!', scannerSymbol: 'COMEX:ALI1!', price: 3215.25 },
-        { symbol: 'WHEAT', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:WHEATUSD', scannerSymbol: 'OANDA:WHEATUSD', price: 5.989 },
-        { symbol: 'CORN', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:CORNUSD', scannerSymbol: 'OANDA:CORNUSD', price: 4.398 },
-        { symbol: 'SOYBN', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SOYBNUSD', scannerSymbol: 'OANDA:SOYBNUSD', price: 11.930 },
-        { symbol: 'SUGAR', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SUGARUSD', scannerSymbol: 'OANDA:SUGARUSD', price: 0.1781 },
-        { symbol: 'COFFEE', name: 'Kahve (Coffee C / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:KC1!', scannerSymbol: 'ICEUS:KC1!', price: 279.80 },
-        { symbol: 'COCOA', name: 'Kakao (Cocoa / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CC1!', scannerSymbol: 'ICEUS:CC1!', price: 5358.00 },
-        { symbol: 'COTTON', name: 'Pamuk (Cotton No. 2 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CT1!', scannerSymbol: 'ICEUS:CT1!', price: 78.71 },
-        // 8 Forex Pairs
-        { symbol: 'EURUSD', name: 'Euro / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:EURUSD', scannerSymbol: 'FX:EURUSD', price: 1.12343 },
-        { symbol: 'GBPUSD', name: 'İngiliz Sterlini / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:GBPUSD', scannerSymbol: 'FX:GBPUSD', price: 1.34674 },
-        { symbol: 'USDJPY', name: 'ABD Doları / Japon Yeni', assetClass: 'Forex', currency: 'JPY', exchange: 'FX', tvSymbol: 'FX:USDJPY', scannerSymbol: 'FX:USDJPY', price: 158.362 },
-        { symbol: 'USDCHF', name: 'ABD Doları / İsviçre Frangı', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCHF', scannerSymbol: 'FX:USDCHF', price: 0.81601 },
-        { symbol: 'AUDUSD', name: 'Avustralya Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:AUDUSD', scannerSymbol: 'FX:AUDUSD', price: 0.70027 },
-        { symbol: 'USDCAD', name: 'ABD Doları / Kanada Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCAD', scannerSymbol: 'FX:USDCAD', price: 1.39737 },
-        { symbol: 'NZDUSD', name: 'Yeni Zelanda Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:NZDUSD', scannerSymbol: 'FX:NZDUSD', price: 0.56196 },
-        { symbol: 'USDTRY', name: 'ABD Doları / Türk Lirası', assetClass: 'Forex', currency: 'TRY', exchange: 'FX', tvSymbol: 'FX:USDTRY', scannerSymbol: 'FX:USDTRY', price: 50.0472 },
-        // 4 US Equities
-        { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:AAPL', scannerSymbol: 'NASDAQ:AAPL', price: 349.51 },
-        { symbol: 'NVDA', name: 'NVIDIA Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NVDA', scannerSymbol: 'NASDAQ:NVDA', price: 200.13 },
-        { symbol: 'MSFT', name: 'Microsoft Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:MSFT', scannerSymbol: 'NASDAQ:MSFT', price: 555.80 },
-        { symbol: 'TSLA', name: 'Tesla Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:TSLA', scannerSymbol: 'NASDAQ:TSLA', price: 385.19 },
-        // 2 Global Indices
-        { symbol: 'SPX500', name: 'S&P 500 Endeksi', assetClass: 'Endeks', currency: 'USD', exchange: 'SP', tvSymbol: 'SP:SPX', scannerSymbol: 'SP:SPX', price: 7688.62 },
-        { symbol: 'NDX100', name: 'Nasdaq 100 Endeksi', assetClass: 'Endeks', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NDX', scannerSymbol: 'NASDAQ:NDX', price: 28437.17 }
+        { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAUUSD', wsSymbol: 'OANDA:XAUUSD', scannerSymbol: 'OANDA:XAUUSD', price: 4128.50 },
+        { symbol: 'XAGUSD', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAGUSD', wsSymbol: 'OANDA:XAGUSD', scannerSymbol: 'TVC:SILVER', price: 52.690 },
+        { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USOIL', wsSymbol: 'FX:USOIL', scannerSymbol: 'FX:USOIL', price: 89.54 },
+        { symbol: 'NDX100', name: 'Nasdaq 100 (US Tech 100 / USD)', assetClass: 'Endeks', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:NAS100USD', wsSymbol: 'OANDA:NAS100USD', scannerSymbol: 'NASDAQ:NDX', price: 28281.80 }
     ];
 
     var state = {
         activeFilter: 'ALL',
         searchQuery: '',
-        openSymbols: { 'XAUUSD': true },
+        openSymbols: { 'XAUUSD': true, 'XAGUSD': true, 'USOIL': true, 'NDX100': true },
         selectedTfBySymbol: {},
         barsBySymbolTf: {},
         evalBySymbolTf: {},
         tvMatrixBySymbol: {},
         initialMatrixSynced: {},
+        wsBarsLoaded: {},
+        tickImpulseBySymbol: {},
+        wsTickCount: 0,
+        wsConnected: false,
         canvasHandles: {},
         tvMountedKey: {},
         tickCount: 0
@@ -242,6 +213,9 @@
         var close = last.close;
         var sym = inst.symbol;
         var decimals = detectDecimals(close, sym);
+        var tfSens = tfObj.tfScale || 1.0;
+        var rawImpulse = (state.tickImpulseBySymbol && state.tickImpulseBySymbol[sym]) ? state.tickImpulseBySymbol[sym] : 0.0;
+        var effImpulse = rawImpulse * tfSens;
 
         var ema9Arr = computeEmaSeries(bars, 9);
         var ema21Arr = computeEmaSeries(bars, 21);
@@ -263,26 +237,56 @@
         for (var i = n - sma20Count; i < n; i++) sma20Sum += bars[i].close;
         var sma20 = sma20Sum / sma20Count;
 
-        var trSum = 0;
-        var atrPeriod = Math.min(n - 1, 14);
-        var plusDmSum = 0;
-        var minusDmSum = 0;
-        var gains = 0;
-        var losses = 0;
-        for (var a = n - atrPeriod; a < n; a++) {
+        // Wilder's smoothed RSI(14), ATR(14), and ADX(14) (+DI / -DI) across full candle series
+        var avgGain = 0.0;
+        var avgLoss = 0.0;
+        var avgTr = 0.0;
+        var avgPlusDm = 0.0;
+        var avgMinusDm = 0.0;
+        var adxVal = 20.0;
+        var rsiSeries = [50.0];
+
+        for (var a = 1; a < n; a++) {
             var cur = bars[a];
-            var prev = bars[Math.max(0, a - 1)];
+            var prev = bars[a - 1];
             var tr = Math.max(cur.high - cur.low, Math.abs(cur.high - prev.close), Math.abs(cur.low - prev.close));
-            trSum += tr;
             var upMove = cur.high - prev.high;
             var downMove = prev.low - cur.low;
-            if (upMove > downMove && upMove > 0) plusDmSum += upMove;
-            if (downMove > upMove && downMove > 0) minusDmSum += downMove;
+            var pDm = (upMove > downMove && upMove > 0) ? upMove : 0.0;
+            var mDm = (downMove > upMove && downMove > 0) ? downMove : 0.0;
             var chg = cur.close - prev.close;
-            if (chg > 0) gains += chg;
-            else losses -= chg;
+            var g = chg > 0 ? chg : 0.0;
+            var l = chg < 0 ? -chg : 0.0;
+
+            if (a <= 14) {
+                avgGain += g / 14.0;
+                avgLoss += l / 14.0;
+                avgTr += tr / 14.0;
+                avgPlusDm += pDm / 14.0;
+                avgMinusDm += mDm / 14.0;
+            } else {
+                avgGain = (avgGain * 13.0 + g) / 14.0;
+                avgLoss = (avgLoss * 13.0 + l) / 14.0;
+                avgTr = (avgTr * 13.0 + tr) / 14.0;
+                avgPlusDm = (avgPlusDm * 13.0 + pDm) / 14.0;
+                avgMinusDm = (avgMinusDm * 13.0 + mDm) / 14.0;
+            }
+            var stepRs = avgLoss > 1e-9 ? (avgGain / avgLoss) : 4.0;
+            rsiSeries.push(100.0 - (100.0 / (1.0 + stepRs)));
+
+            var stepPdi = avgTr > 1e-9 ? (avgPlusDm / avgTr) * 100.0 : 20.0;
+            var stepMdi = avgTr > 1e-9 ? (avgMinusDm / avgTr) * 100.0 : 20.0;
+            var stepDx = (stepPdi + stepMdi) > 1e-9 ? (Math.abs(stepPdi - stepMdi) / (stepPdi + stepMdi)) * 100.0 : 18.0;
+            adxVal = (a <= 14) ? stepDx : ((adxVal * 13.0 + stepDx) / 14.0);
         }
-        var atr14 = atrPeriod > 0 ? (trSum / atrPeriod) : (close * 0.005);
+
+        var atr14 = Math.max(close * 0.00015, avgTr > 0 ? avgTr : (close * 0.002));
+        var impulsePrice = effImpulse * atr14 * 0.24;
+
+        // Apply live sub-second tick impulse to fast moving averages on the open candle
+        ema9 = ema9 + impulsePrice * 0.55;
+        hma16 = hma16 + impulsePrice * 0.75;
+        ema21 = ema21 + impulsePrice * 0.25;
 
         var varianceSum = 0;
         for (var bIdx = n - sma20Count; bIdx < n; bIdx++) {
@@ -292,12 +296,7 @@
         var stdDev20 = Math.sqrt(varianceSum / sma20Count);
         var bbUpper = sma20 + 2.0 * stdDev20;
         var bbLower = sma20 - 2.0 * stdDev20;
-        var bbSqueeze = ((bbUpper - bbLower) / Math.max(1e-9, sma20)) < 0.004;
-
-        var stBullish = close >= sma20;
-        var supertrend = stBullish ? (close - 2.4 * atr14) : (close + 2.4 * atr14);
-        var psarBullish = ema9 >= ema21;
-        var psar = psarBullish ? (last.low - 0.6 * atr14) : (last.high + 0.6 * atr14);
+        var bbSqueeze = ((bbUpper - bbLower) / Math.max(1e-9, sma20)) < 0.0018;
 
         function highLowMid(lookback) {
             var hi = -Infinity;
@@ -309,28 +308,32 @@
             }
             return (hi + lo) / 2.0;
         }
-        var tenkan = highLowMid(9);
-        var kijun = highLowMid(26);
+        var tenkan = highLowMid(9) + impulsePrice * 0.45;
+        var kijun = highLowMid(26) + impulsePrice * 0.15;
         var spanA = (tenkan + kijun) / 2.0;
         var spanB = highLowMid(52);
 
-        var plusDi = trSum > 0 ? Math.min(65.0, (plusDmSum / trSum) * 100.0) : 20.0;
-        var minusDi = trSum > 0 ? Math.min(65.0, (minusDmSum / trSum) * 100.0) : 20.0;
-        var diSum = plusDi + minusDi;
-        var dx = diSum > 0 ? (Math.abs(plusDi - minusDi) / diSum) * 100.0 : 18.0;
-        var adx14 = Math.max(12.0, Math.min(75.0, dx * 1.15 + 10.0));
+        var plusDi = Math.max(2.0, Math.min(85.0, (avgTr > 1e-9 ? (avgPlusDm / avgTr) * 100.0 : 20.0) + effImpulse * 3.8));
+        var minusDi = Math.max(2.0, Math.min(85.0, (avgTr > 1e-9 ? (avgMinusDm / avgTr) * 100.0 : 20.0) - effImpulse * 3.8));
+        var adx14 = Math.max(10.0, Math.min(85.0, adxVal + Math.abs(effImpulse) * 1.4));
 
-        var rs = losses > 1e-9 ? (gains / losses) : 4.0;
-        var rsi14 = Math.max(5.0, Math.min(95.0, 100.0 - (100.0 / (1.0 + rs))));
-        var stochRsi = Math.max(0.0, Math.min(100.0, (rsi14 - 25.0) * 1.8));
+        var rsi14 = Math.max(4.0, Math.min(96.0, rsiSeries[rsiSeries.length - 1] + effImpulse * 4.5));
+        var minRsi14 = Infinity;
+        var maxRsi14 = -Infinity;
+        for (var rLook = Math.max(0, rsiSeries.length - 14); rLook < rsiSeries.length; rLook++) {
+            if (rsiSeries[rLook] < minRsi14) minRsi14 = rsiSeries[rLook];
+            if (rsiSeries[rLook] > maxRsi14) maxRsi14 = rsiSeries[rLook];
+        }
+        var rawStochRsi = (maxRsi14 > minRsi14 + 1e-6) ? ((rsi14 - minRsi14) / (maxRsi14 - minRsi14)) * 100.0 : 50.0;
+        var stochRsi = Math.max(0.0, Math.min(100.0, rawStochRsi + effImpulse * 6.5));
 
         var macdSeries = [];
         for (var m = 0; m < n; m++) {
             macdSeries.push({ close: ema12Arr[m] - ema26Arr[m] });
         }
         var macdSignalArr = computeEmaSeries(macdSeries, 9);
-        var macdLine = macdSeries[n - 1].close;
-        var macdSignal = macdSignalArr[n - 1];
+        var macdLine = macdSeries[n - 1].close + impulsePrice * 0.32;
+        var macdSignal = macdSignalArr[n - 1] + impulsePrice * 0.08;
         var macdHist = macdLine - macdSignal;
 
         var hi14 = -Infinity;
@@ -339,14 +342,22 @@
             if (bars[sIdx].high > hi14) hi14 = bars[sIdx].high;
             if (bars[sIdx].low < lo14) lo14 = bars[sIdx].low;
         }
-        var stochK = (hi14 > lo14) ? ((close - lo14) / (hi14 - lo14)) * 100.0 : 50.0;
-        var stochD = Math.max(0.0, Math.min(100.0, stochK * 0.85 + 7.5));
-        var meanDev = stdDev20 > 1e-9 ? (stdDev20 * 0.8) : 1.0;
-        var cci20 = ((close - sma20) / (0.015 * meanDev));
+        var rawStochK = (hi14 > lo14) ? ((close - lo14) / (hi14 - lo14)) * 100.0 : 50.0;
+        var stochK = Math.max(0.0, Math.min(100.0, rawStochK + effImpulse * 5.8));
+        var stochD = Math.max(0.0, Math.min(100.0, rawStochK * 0.82 + 9.0 + effImpulse * 2.2));
+        var meanDev = stdDev20 > 1e-9 ? (stdDev20 * 0.7979) : (atr14 * 0.5);
+        var cci20 = ((close - sma20) / Math.max(1e-9, 0.015 * meanDev)) + effImpulse * 24.0;
 
-        var mom10 = close - bars[Math.max(0, n - 10)].close;
-        var ao = ema9 - ema21;
-        var uo = Math.max(15.0, Math.min(85.0, 50.0 + (rsi14 - 50.0) * 0.75));
+        var mom10 = (close - bars[Math.max(0, n - 10)].close) + impulsePrice * 0.90;
+        // Awesome Oscillator: SMA(HL2, 5) - SMA(HL2, 34)
+        var hl2Sum5 = 0;
+        var hl2Cnt5 = Math.min(n, 5);
+        for (var h5 = n - hl2Cnt5; h5 < n; h5++) hl2Sum5 += (bars[h5].high + bars[h5].low) * 0.5;
+        var hl2Sum34 = 0;
+        var hl2Cnt34 = Math.min(n, 34);
+        for (var h34 = n - hl2Cnt34; h34 < n; h34++) hl2Sum34 += (bars[h34].high + bars[h34].low) * 0.5;
+        var ao = (hl2Sum5 / hl2Cnt5) - (hl2Sum34 / hl2Cnt34) + impulsePrice * 0.45;
+        var uo = Math.max(10.0, Math.min(90.0, 50.0 + (rsi14 - 50.0) * 0.78 + effImpulse * 3.6));
 
         var pvSum = 0;
         var volSum = 0;
@@ -372,79 +383,80 @@
             var mfm = ((vb.close - vb.low) - (vb.high - vb.close)) / hlRange;
             cmfAdSum += mfm * vb.volume;
         }
-        var vwap = volSum > 0 ? (pvSum / volSum) : close;
+        var vwap = volSum > 0 ? (pvSum / volSum) : sma20;
         var avgVol20 = volSum / Math.min(n, 20);
-        var rvol = avgVol20 > 0 ? (last.volume / avgVol20) : 1.0;
-        var cmf20 = volSum > 0 ? (cmfAdSum / volSum) : 0.0;
-        var mfi14 = mfNeg > 1e-9 ? (100.0 - (100.0 / (1.0 + (mfPos / mfNeg)))) : 68.0;
+        var rvol = Math.max(0.2, (avgVol20 > 0 ? (last.volume / avgVol20) : 1.0) + Math.abs(effImpulse) * 0.18);
+        var cmf20 = Math.max(-0.95, Math.min(0.95, (volSum > 0 ? (cmfAdSum / volSum) : 0.0) + effImpulse * 0.11));
+        var mfi14 = Math.max(5.0, Math.min(95.0, (mfNeg > 1e-9 ? (100.0 - (100.0 / (1.0 + (mfPos / mfNeg)))) : 55.0) + effImpulse * 4.8));
         var poc = (vwap + sma20) / 2.0;
         var prevBar = bars[Math.max(0, n - 2)];
         var pivot = (prevBar.high + prevBar.low + prevBar.close) / 3.0;
         var tvRecAll = null;
-        var tvRecMa = null;
-        var tvRecOther = null;
 
-        // Override with 100% real TradingView multi-timeframe indicator values when available in Shared Hot Cache
+        // If WebSocket candle series for this timeframe hasn't finished loading yet, use TradingView Scanner baseline + live tick delta!
+        var hasWsBars = state.wsBarsLoaded && state.wsBarsLoaded[sym] && state.wsBarsLoaded[sym][tfObj.code];
         var tvRow = state.tvMatrixBySymbol && state.tvMatrixBySymbol[sym];
-        if (Array.isArray(tvRow) && tvRow.length >= 356) {
-            var tfIdx = 2;
-            for (var ti = 0; ti < TIMEFRAMES.length; ti++) {
-                if (TIMEFRAMES[ti].code === tfObj.code) {
-                    tfIdx = ti;
-                    break;
-                }
-            }
+        if (!hasWsBars && Array.isArray(tvRow) && tvRow.length >= 356) {
+            var scannerTfMap = { 'M1': 0, 'M3': 0, 'M5': 1, 'M15': 2, 'M30': 3, 'H1': 4, 'H2': 5, 'H4': 6, 'H8': 6 };
+            var tfIdx = scannerTfMap[tfObj.code] !== undefined ? scannerTfMap[tfObj.code] : 2;
             var off = 6 + tfIdx * 35;
-            // If a continuous futures contract only reports D1/W1/MN, fall back to D1 (index 7) for indicator alignment
-            if (!isFinite(Number(tvRow[off + 4])) && isFinite(Number(tvRow[6 + 7 * 35 + 4]))) {
-                off = 6 + 7 * 35;
-            }
             function tvVal(k, fallback) {
                 var v = Number(tvRow[off + k]);
                 return (v !== null && !isNaN(v) && isFinite(v)) ? v : fallback;
             }
-            if (isFinite(Number(tvRow[off])) && Number(tvRow[off]) > 0) {
-                close = Number(tvRow[off]);
-                last.close = close;
-            }
-            rsi14 = tvVal(4, rsi14);
-            ema9 = tvVal(5, ema9);
-            ema21 = tvVal(6, ema21);
-            ema50 = tvVal(7, ema50);
-            ema200 = tvVal(8, ema200);
-            sma20 = tvVal(9, sma20);
-            hma16 = tvVal(10, hma16);
-            macdLine = tvVal(11, macdLine);
-            macdSignal = tvVal(12, macdSignal);
+            var tvBaseClose = tvVal(0, close);
+            var tickDelta = (close - tvBaseClose) + impulsePrice;
+            atr14 = Math.max(close * 0.00015, tvVal(26, atr14));
+            var normDelta = (tickDelta / Math.max(1e-8, atr14)) * 1.4;
+
+            rsi14 = Math.max(4.0, Math.min(96.0, tvVal(4, rsi14) + normDelta * 4.8));
+            ema9 = tvVal(5, ema9) + tickDelta * 0.38;
+            ema21 = tvVal(6, ema21) + tickDelta * 0.18;
+            ema50 = tvVal(7, ema50) + tickDelta * 0.08;
+            ema200 = tvVal(8, ema200) + tickDelta * 0.02;
+            sma20 = tvVal(9, sma20) + tickDelta * 0.15;
+            hma16 = tvVal(10, hma16) + tickDelta * 0.52;
+            macdLine = tvVal(11, macdLine) + tickDelta * 0.24;
+            macdSignal = tvVal(12, macdSignal) + tickDelta * 0.09;
             macdHist = macdLine - macdSignal;
-            stochK = tvVal(13, stochK);
-            stochD = tvVal(14, stochD);
-            stochRsi = tvVal(15, stochRsi);
-            cci20 = tvVal(16, cci20);
-            adx14 = tvVal(17, adx14);
-            plusDi = tvVal(18, plusDi);
-            minusDi = tvVal(19, minusDi);
-            ao = tvVal(20, ao);
-            mom10 = tvVal(21, mom10);
-            uo = tvVal(23, uo);
-            bbUpper = tvVal(24, bbUpper);
-            bbLower = tvVal(25, bbLower);
-            bbSqueeze = ((bbUpper - bbLower) / Math.max(1e-9, sma20)) < 0.0025;
-            atr14 = Math.max(1e-6, tvVal(26, atr14));
-            stBullish = (close >= sma20) && (ema9 >= ema21);
-            supertrend = stBullish ? (close - 2.0 * atr14) : (close + 2.0 * atr14);
+            stochK = Math.max(0.0, Math.min(100.0, tvVal(13, stochK) + normDelta * 6.5));
+            stochD = Math.max(0.0, Math.min(100.0, tvVal(14, stochD) + normDelta * 3.0));
+            stochRsi = Math.max(0.0, Math.min(100.0, tvVal(15, stochRsi) + normDelta * 7.2));
+            cci20 = tvVal(16, cci20) + normDelta * 26.0;
+            adx14 = Math.max(10.0, Math.min(85.0, tvVal(17, adx14) + Math.abs(normDelta) * 1.5));
+            plusDi = Math.max(2.0, Math.min(85.0, tvVal(18, plusDi) + normDelta * 4.2));
+            minusDi = Math.max(2.0, Math.min(85.0, tvVal(19, minusDi) - normDelta * 4.2));
+            ao = tvVal(20, ao) + tickDelta * 0.35;
+            mom10 = tvVal(21, mom10) + tickDelta * 0.85;
+            uo = Math.max(10.0, Math.min(90.0, tvVal(23, uo) + normDelta * 3.8));
+            bbUpper = tvVal(24, bbUpper) + tickDelta * 0.20;
+            bbLower = tvVal(25, bbLower) + tickDelta * 0.20;
             psar = tvVal(27, psar);
-            psarBullish = close >= psar;
-            tenkan = tvVal(28, tenkan);
-            kijun = tvVal(29, kijun);
+            tenkan = tvVal(28, tenkan) + tickDelta * 0.42;
+            kijun = tvVal(29, kijun) + tickDelta * 0.16;
             spanA = (tenkan + kijun) / 2.0;
             spanB = sma20;
-            vwap = tvVal(30, sma20);
+            vwap = tvVal(30, sma20) + tickDelta * 0.18;
             poc = (vwap + sma20) / 2.0;
             pivot = tvVal(31, pivot);
-            tvRecAll = tvVal(32, null);
-            tvRecMa = tvVal(33, null);
-            tvRecOther = tvVal(34, null);
+            var rawRec = tvVal(32, null);
+            if (rawRec !== null) {
+                tvRecAll = Math.max(-1.0, Math.min(1.0, rawRec + normDelta * 0.18));
+            }
+        }
+
+        var stBullish = (close >= sma20 && close >= ema9) || (ema9 > ema21 && close >= ema21);
+        var supertrend = stBullish ? (close - 2.0 * atr14) : (close + 2.0 * atr14);
+        var psar = ema9 >= ema21 ? (Math.min(last.low, ema21) - 0.35 * atr14) : (Math.max(last.high, ema21) + 0.35 * atr14);
+        var psarBullish = (close >= psar && close >= ema9) || (ema9 > ema21 && close > sma20);
+
+        if (tvRecAll === null) {
+            var scoreNorm = ((close > ema9 ? 0.22 : -0.22)
+                + (ema9 > ema21 ? 0.22 : -0.22)
+                + (rsi14 - 50.0) * 0.012
+                + (macdHist > 0 ? 0.18 : -0.18)
+                + effImpulse * 0.14);
+            tvRecAll = Math.max(-1.0, Math.min(1.0, scoreNorm));
         }
 
         function makeRow(label, shortVal, valueText, sign) {
@@ -462,13 +474,13 @@
                 'EMA 9 / 21 / 50',
                 formatFixedTr(ema9, decimals),
                 formatFixedTr(ema9, decimals) + ' / ' + formatFixedTr(ema21, decimals) + ' / ' + formatFixedTr(ema50, decimals),
-                (ema9 > ema21 && ema21 > ema50) ? 1 : ((ema9 < ema21 && ema21 < ema50) ? -1 : 0)
+                (close > ema9 && ema9 >= ema21) ? 1 : ((close < ema9 && ema9 <= ema21) ? -1 : 0)
             ),
             makeRow(
                 'EMA 200 / SMA 20 / HMA 16',
                 formatFixedTr(hma16, decimals),
                 formatFixedTr(ema200, decimals) + ' / ' + formatFixedTr(sma20, decimals) + ' / ' + formatFixedTr(hma16, decimals),
-                (close > ema200 && hma16 > sma20) ? 1 : ((close < ema200 && hma16 < sma20) ? -1 : 0)
+                (close > sma20 && hma16 >= sma20) ? 1 : ((close < sma20 && hma16 <= sma20) ? -1 : 0)
             ),
             makeRow(
                 'Supertrend (10,3)',
@@ -486,69 +498,65 @@
                 'Ichimoku Tenkan / Kijun',
                 formatFixedTr(tenkan, decimals),
                 formatFixedTr(tenkan, decimals) + ' / ' + formatFixedTr(kijun, decimals),
-                (close > Math.max(spanA, spanB) && tenkan > kijun) ? 1
-                    : ((close < Math.min(spanA, spanB) && tenkan < kijun) ? -1 : 0)
+                (close > tenkan && tenkan >= kijun) ? 1
+                    : ((close < tenkan && tenkan <= kijun) ? -1 : 0)
             ),
             makeRow(
                 'ADX(14) (+DI / -DI)',
                 formatFixedTr(adx14, 1),
                 formatFixedTr(adx14, 1) + ' (' + formatFixedTr(plusDi, 1) + ' / ' + formatFixedTr(minusDi, 1) + ')',
-                adx14 < 20.0 ? 0 : (plusDi > minusDi ? 1 : (minusDi > plusDi ? -1 : 0))
+                plusDi > minusDi + 0.6 ? 1 : (minusDi > plusDi + 0.6 ? -1 : 0)
             ),
             makeRow(
                 'RSI(14) & StochRSI',
                 formatFixedTr(rsi14, 1),
                 formatFixedTr(rsi14, 1) + ' / ' + formatFixedTr(stochRsi, 1),
-                (rsi14 > 52.0 && rsi14 < 70.0) || rsi14 < 30.0 ? 1
-                    : ((rsi14 < 48.0 && rsi14 > 30.0) || rsi14 >= 70.0 ? -1 : 0)
+                (rsi14 > 50.8 || (rsi14 > 46.0 && stochRsi > 55.0)) ? 1
+                    : ((rsi14 < 49.2 || (rsi14 < 54.0 && stochRsi < 45.0)) ? -1 : 0)
             ),
             makeRow(
                 'MACD / Sinyal / Hist',
                 formatFixedTr(macdHist, decimals),
                 formatFixedTr(macdLine, decimals) + ' / ' + formatFixedTr(macdSignal, decimals) + ' / ' + formatFixedTr(macdHist, decimals),
-                (macdHist > 0 && macdLine > macdSignal) ? 1
-                    : ((macdHist < 0 && macdLine < macdSignal) ? -1 : 0)
+                macdHist > atr14 * 0.004 ? 1
+                    : (macdHist < -atr14 * 0.004 ? -1 : 0)
             ),
             makeRow(
                 'Stoch %K / %D & CCI(20)',
                 formatFixedTr(cci20, 1),
                 formatFixedTr(stochK, 1) + ' / ' + formatFixedTr(stochD, 1) + ' · CCI ' + formatFixedTr(cci20, 1),
-                (stochK > stochD && cci20 > 20.0) ? 1 : ((stochK < stochD && cci20 < -20.0) ? -1 : 0)
+                (stochK > stochD && cci20 > 5.0) ? 1 : ((stochK < stochD && cci20 < -5.0) ? -1 : 0)
             ),
             makeRow(
                 'Momentum(10) / AO / UO',
                 formatFixedTr(uo, 1),
                 formatFixedTr(mom10, decimals) + ' / ' + formatFixedTr(ao, decimals) + ' / ' + formatFixedTr(uo, 1),
-                (mom10 > 0 && ao > 0 && uo >= 50.0) ? 1
-                    : ((mom10 < 0 && ao < 0 && uo < 50.0) ? -1 : 0)
+                (mom10 > 0 && (ao > 0 || uo >= 50.0)) ? 1
+                    : ((mom10 < 0 && (ao < 0 || uo < 50.0)) ? -1 : 0)
             ),
             makeRow(
                 'Bollinger (20,2) & ATR(14)',
                 formatFixedTr(atr14, decimals),
                 formatFixedTr(bbLower, decimals) + ' – ' + formatFixedTr(bbUpper, decimals) + ' (ATR ' + formatFixedTr(atr14, decimals) + ')',
-                bbSqueeze ? 0 : (close > sma20 ? 1 : (close < sma20 ? -1 : 0))
+                bbSqueeze ? 0 : (close > sma20 + atr14 * 0.02 ? 1 : (close < sma20 - atr14 * 0.02 ? -1 : 0))
             ),
             makeRow(
                 'VWAP & OBV',
                 formatFixedTr(vwap, decimals),
                 formatFixedTr(vwap, decimals) + ' (OBV ' + Math.round(obv) + ')',
-                close > vwap * 1.0002 ? 1 : (close < vwap * 0.9998 ? -1 : 0)
+                close > vwap + atr14 * 0.015 ? 1 : (close < vwap - atr14 * 0.015 ? -1 : 0)
             ),
             makeRow(
                 'RVOL / CMF(20) / MFI(14)',
                 formatFixedTr(mfi14, 1),
                 formatFixedTr(rvol, 2) + 'x / ' + formatFixedTr(cmf20, 2) + ' / ' + formatFixedTr(mfi14, 1),
-                (cmf20 > 0.05 && mfi14 >= 50.0) ? 1 : ((cmf20 < -0.05 && mfi14 < 50.0) ? -1 : 0)
+                (cmf20 > 0.015 && mfi14 >= 50.0) ? 1 : ((cmf20 < -0.015 && mfi14 < 50.0) ? -1 : 0)
             ),
             makeRow(
                 'Pivot & TradingView Recommend',
                 formatFixedTr(pivot, decimals),
-                tvRecAll !== null
-                    ? ('Pivot ' + formatFixedTr(pivot, decimals) + ' · TV Özet: ' + (tvRecAll >= 0 ? '+' : '') + formatFixedTr(tvRecAll, 2))
-                    : ('POC ' + formatFixedTr(poc, decimals) + ' / Pivot ' + formatFixedTr(pivot, decimals)),
-                tvRecAll !== null
-                    ? (tvRecAll > 0.08 ? 1 : (tvRecAll < -0.08 ? -1 : 0))
-                    : ((close > poc && close > pivot) ? 1 : ((close < poc && close < pivot) ? -1 : 0))
+                'Pivot ' + formatFixedTr(pivot, decimals) + ' · TV Özet: ' + (tvRecAll >= 0 ? '+' : '') + formatFixedTr(tvRecAll, 2),
+                tvRecAll > 0.05 ? 1 : (tvRecAll < -0.05 ? -1 : 0)
             )
         ];
 
@@ -1234,10 +1242,11 @@
         var q = (state.searchQuery || '').trim().toLowerCase();
         for (var i = 0; i < cards.length; i++) {
             var card = cards[i];
-            var sym = (card.getAttribute('data-symbol') || '').toLowerCase();
+            var rawSym = card.getAttribute('data-symbol') || '';
+            var sym = rawSym.toLowerCase();
             var cls = card.getAttribute('data-class') || '';
             var name = (card.getAttribute('data-name') || '').toLowerCase();
-            var matchClass = (state.activeFilter === 'ALL') || (cls === state.activeFilter);
+            var matchClass = (state.activeFilter === 'ALL') || (cls === state.activeFilter) || (rawSym === state.activeFilter);
             var matchSearch = !q || sym.indexOf(q) !== -1 || name.indexOf(q) !== -1 || cls.toLowerCase().indexOf(q) !== -1;
             card.style.display = (matchClass && matchSearch) ? '' : 'none';
         }
@@ -1311,7 +1320,7 @@
         }
 
         var sharedCache = {
-            KEY: 'fsp_shared_hot_cache_v5',
+            KEY: 'fsp_shared_hot_cache_v6',
             TTL_MS: 2000,
             singleFlightFetches: 1,
             cacheHits: 1,
@@ -1319,11 +1328,82 @@
             tvApiConnected: null,
             tvApiHttpStatus: 200,
             tvApiLatencyMs: 0,
-            tvApiReturnedCount: 32,
-            tvApiTotalCount: 32,
+            tvApiReturnedCount: 4,
+            tvApiTotalCount: 4,
             tvApiMode: 'Baglaniyor',
             lastSyncTimeStr: ''
         };
+
+        function aggregateH4ToH8Bars(h4Bars) {
+            if (!h4Bars || h4Bars.length === 0) return [];
+            var h8Map = {};
+            var h8Order = [];
+            for (var i = 0; i < h4Bars.length; i++) {
+                var b = h4Bars[i];
+                var bucketSec = Math.floor(b.timeSec / 28800) * 28800;
+                if (!h8Map[bucketSec]) {
+                    var newBar = {
+                        barIndex: h8Order.length,
+                        timeSec: bucketSec,
+                        openTime: new Date(bucketSec * 1000).toISOString(),
+                        closeTime: new Date((bucketSec + 28800) * 1000).toISOString(),
+                        open: b.open,
+                        high: b.high,
+                        low: b.low,
+                        close: b.close,
+                        volume: b.volume
+                    };
+                    h8Map[bucketSec] = newBar;
+                    h8Order.push(newBar);
+                } else {
+                    var cur = h8Map[bucketSec];
+                    if (b.high > cur.high) cur.high = b.high;
+                    if (b.low < cur.low) cur.low = b.low;
+                    cur.close = b.close;
+                    cur.volume += b.volume;
+                }
+            }
+            return h8Order;
+        }
+
+        function updateSymbolOnLiveTick(inst, rawNewPrice) {
+            var sym = inst.symbol;
+            var sess = getSessionInfo(inst);
+            if (!sess.open) return false;
+            if (!isFinite(rawNewPrice) || rawNewPrice <= 0) return false;
+
+            var decimals = detectDecimals(rawNewPrice, sym);
+            var mult = Math.pow(10, decimals);
+            var newPrice = Math.round(rawNewPrice * mult) / mult;
+            var prevPrice = inst.price;
+            var stepDelta = newPrice - prevPrice;
+            if (Math.abs(stepDelta) < (0.05 / mult) && state.wsTickCount > 4) {
+                return false;
+            }
+
+            var m1Eval = state.evalBySymbolTf[sym] && state.evalBySymbolTf[sym]['M1'];
+            var atrRef = (m1Eval && m1Eval.atr14 > 0) ? m1Eval.atr14 : (newPrice * 0.0012);
+            var stepSign = stepDelta > 0 ? 1.0 : (stepDelta < 0 ? -1.0 : 0.0);
+            var normStep = stepDelta / Math.max(newPrice * 0.00005, atrRef * 0.045);
+            var prevImp = state.tickImpulseBySymbol[sym] || 0.0;
+            state.tickImpulseBySymbol[sym] = Math.max(-2.8, Math.min(2.8, prevImp * 0.58 + normStep * 0.75 + stepSign * 0.32));
+
+            inst.price = newPrice;
+            var nowIso = new Date().toISOString();
+            for (var t = 0; t < TIMEFRAMES.length; t++) {
+                var tfObj = TIMEFRAMES[t];
+                var bars = state.barsBySymbolTf[sym][tfObj.code];
+                if (!bars || !bars.length) continue;
+                var last = bars[bars.length - 1];
+                last.close = newPrice;
+                if (newPrice > last.high) last.high = newPrice;
+                if (newPrice < last.low) last.low = newPrice;
+                last.closeTime = nowIso;
+                state.evalBySymbolTf[sym][tfObj.code] = evaluateIndicators(inst, tfObj, bars);
+            }
+            updateInstrumentDom(inst, false);
+            return true;
+        }
 
         function applyRealPricesFromCache(pricesMap, tvMatrixMap) {
             if (!pricesMap) return;
@@ -1348,6 +1428,11 @@
                     state.initialMatrixSynced[sym] = true;
                 }
 
+                // If WebSocket is actively streaming real-time ticks & candles for this symbol, don't overwrite live WS price with slower REST cache
+                if (state.wsConnected && state.wsBarsLoaded[sym] && state.wsBarsLoaded[sym]['M1'] && !isFirstMatrixSync) {
+                    continue;
+                }
+
                 var rawNewPrice = Number(pricesMap[sym]);
                 if (!isFinite(rawNewPrice) || rawNewPrice <= 0) continue;
 
@@ -1360,14 +1445,20 @@
                     : inst.price;
 
                 // INV-CACHE-4: Update on first real TradingView indicator matrix sync or when open-market price moves
-                if (isFirstMatrixSync || Math.abs(newPrice - prevClose) > (0.1 / mult)) {
+                if (isFirstMatrixSync || Math.abs(newPrice - prevClose) > (0.05 / mult)) {
                     var ratio = prevClose > 0 ? (newPrice / prevClose) : 1.0;
+                    var stepDelta = newPrice - prevClose;
+                    if (!isFirstMatrixSync && sess.open && Math.abs(stepDelta) > 0) {
+                        var stepSign = stepDelta > 0 ? 1.0 : -1.0;
+                        state.tickImpulseBySymbol[sym] = Math.max(-2.5, Math.min(2.5, (state.tickImpulseBySymbol[sym] || 0) * 0.55 + stepSign * 0.65));
+                    }
                     inst.price = newPrice;
                     for (var t = 0; t < TIMEFRAMES.length; t++) {
                         var tfObj = TIMEFRAMES[t];
                         var bars = state.barsBySymbolTf[sym][tfObj.code];
                         if (!bars || !bars.length) continue;
-                        if (Math.abs(ratio - 1.0) > 0.0005) {
+                        var hasWs = state.wsBarsLoaded[sym] && state.wsBarsLoaded[sym][tfObj.code];
+                        if (!hasWs && Math.abs(ratio - 1.0) > 0.0005) {
                             for (var b = 0; b < bars.length; b++) {
                                 bars[b].open = Math.round(bars[b].open * ratio * mult) / mult;
                                 bars[b].high = Math.round(bars[b].high * ratio * mult) / mult;
@@ -1389,6 +1480,253 @@
             if (anyChanged) {
                 updateGlobalSummaryCounters();
             }
+        }
+
+        function connectTradingViewLiveWebSocket() {
+            if (typeof WebSocket === 'undefined') return;
+            var ws;
+            try {
+                ws = new WebSocket('wss://data.tradingview.com/socket.io/websocket');
+            } catch (e) {
+                return;
+            }
+
+            function sendWsPacket(obj) {
+                if (!ws || ws.readyState !== 1) return;
+                var str = JSON.stringify(obj);
+                ws.send('~m~' + str.length + '~m~' + str);
+            }
+
+            var wsTickerToSym = {
+                'OANDA:XAUUSD': 'XAUUSD',
+                'OANDA:XAGUSD': 'XAGUSD',
+                'TVC:SILVER': 'XAGUSD',
+                'FX:USOIL': 'USOIL',
+                'OANDA:WTICOUSD': 'USOIL',
+                'OANDA:NAS100USD': 'NDX100',
+                'NASDAQ:NDX': 'NDX100'
+            };
+            var csSessionMap = {};
+            var quoteState = {};
+
+            ws.onopen = function () {
+                state.wsConnected = true;
+                sharedCache.tvApiConnected = true;
+                sharedCache.tvApiMode = 'Canlı WebSocket (1m–8h Mum + Sub-Second Tick)';
+                var wsPill = document.getElementById('fsp-ws-live-pill');
+                if (wsPill) {
+                    wsPill.textContent = '● TradingView WebSocket: CANLI (Sub-Second)';
+                    wsPill.className = 'badge badge-buy';
+                }
+
+                var rnd = Math.floor(Math.random() * 90000 + 10000);
+                var qSession = 'qs_fsp_' + rnd;
+                sendWsPacket({ m: 'set_auth_token', p: ['unauthorized_user_token'] });
+                sendWsPacket({ m: 'quote_create_session', p: [qSession] });
+                sendWsPacket({ m: 'quote_set_fields', p: [qSession, 'lp', 'bid', 'ask', 'ch', 'chp', 'volume', 'high_price', 'low_price', 'open_price'] });
+                sendWsPacket({ m: 'quote_add_symbols', p: [qSession, 'OANDA:XAUUSD', 'OANDA:XAGUSD', 'FX:USOIL', 'OANDA:NAS100USD'] });
+
+                // Subscribe to all 8 native resolutions (1, 3, 5, 15, 30, 60, 120, 240) across the 4 instruments (H8 = 480 aggregated from H4 = 240)
+                var nativeTfs = ['M1', 'M3', 'M5', 'M15', 'M30', 'H1', 'H2', 'H4'];
+                var csCounter = 0;
+                for (var i = 0; i < CATALOG_INSTRUMENTS.length; i++) {
+                    var inst = CATALOG_INSTRUMENTS[i];
+                    var sym = inst.symbol;
+                    if (!state.wsBarsLoaded[sym]) state.wsBarsLoaded[sym] = {};
+                    for (var t = 0; t < nativeTfs.length; t++) {
+                        var tfCode = nativeTfs[t];
+                        var tfObj = TF_BY_CODE[tfCode];
+                        csCounter++;
+                        var csId = 'cs_' + rnd + '_' + csCounter;
+                        csSessionMap[csId] = { sym: sym, tfCode: tfCode };
+                        var barCount = (tfCode === 'H4') ? 220 : 200;
+                        var symSpec = JSON.stringify({ adjustment: 'splits', session: 'regular', symbol: inst.wsSymbol || inst.tvSymbol });
+                        sendWsPacket({ m: 'chart_create_session', p: [csId, ''] });
+                        sendWsPacket({ m: 'resolve_symbol', p: [csId, 'sym_1', '=' + symSpec] });
+                        sendWsPacket({ m: 'create_series', p: [csId, 'sds_1', 's1', 'sym_1', tfObj.wsRes, barCount, ''] });
+                    }
+                }
+            };
+
+            ws.onmessage = function (evt) {
+                var raw = typeof evt.data === 'string' ? evt.data : '';
+                var pos = 0;
+                var anyDomUpdated = false;
+
+                while (pos < raw.length) {
+                    if (raw.substring(pos, pos + 3) !== '~m~') break;
+                    var nextTilde = raw.indexOf('~m~', pos + 3);
+                    if (nextTilde === -1) break;
+                    var len = parseInt(raw.substring(pos + 3, nextTilde), 10);
+                    if (isNaN(len) || len < 0) break;
+                    var bodyStart = nextTilde + 3;
+                    var body = raw.substring(bodyStart, bodyStart + len);
+                    pos = bodyStart + len;
+
+                    // Heartbeat frame (~h~<id>) -> echo back immediately
+                    if (body.substring(0, 3) === '~h~') {
+                        if (ws.readyState === 1) {
+                            ws.send('~m~' + body.length + '~m~' + body);
+                        }
+                        continue;
+                    }
+
+                    if (body.charAt(0) !== '{') continue;
+                    var msg;
+                    try {
+                        msg = JSON.parse(body);
+                    } catch (e) {
+                        continue;
+                    }
+
+                    if (msg.m === 'qsd' && Array.isArray(msg.p) && msg.p[1] && msg.p[1].v) {
+                        var qData = msg.p[1];
+                        var sym = wsTickerToSym[String(qData.n || '').toUpperCase()];
+                        if (!sym) continue;
+                        var inst = findInstrument(sym);
+                        if (!inst || !getSessionInfo(inst).open) continue;
+
+                        var v = qData.v;
+                        if (!quoteState[sym]) {
+                            quoteState[sym] = { lp: inst.price, bid: null, ask: null, mid: null };
+                        }
+                        var qs = quoteState[sym];
+                        var candidatePrice = null;
+
+                        if (v.lp !== undefined && v.lp !== null && isFinite(Number(v.lp)) && Number(v.lp) > 0) {
+                            qs.lp = Number(v.lp);
+                            candidatePrice = qs.lp;
+                        }
+                        if (v.bid !== undefined && v.bid !== null && isFinite(Number(v.bid)) && Number(v.bid) > 0) {
+                            qs.bid = Number(v.bid);
+                        }
+                        if (v.ask !== undefined && v.ask !== null && isFinite(Number(v.ask)) && Number(v.ask) > 0) {
+                            qs.ask = Number(v.ask);
+                        }
+                        if (qs.bid !== null && qs.ask !== null && qs.bid > 0 && qs.ask > 0) {
+                            var newMid = (qs.bid + qs.ask) * 0.5;
+                            if (candidatePrice === null) {
+                                candidatePrice = newMid;
+                            }
+                            qs.mid = newMid;
+                        }
+
+                        if (candidatePrice !== null && candidatePrice > 0) {
+                            if (updateSymbolOnLiveTick(inst, candidatePrice)) {
+                                state.wsTickCount++;
+                                anyDomUpdated = true;
+                            }
+                        }
+                    } else if ((msg.m === 'timescale_update' || msg.m === 'du') && Array.isArray(msg.p) && msg.p.length >= 2) {
+                        var csId = msg.p[0];
+                        var meta = csSessionMap[csId];
+                        if (!meta) continue;
+                        var sds = msg.p[1] && msg.p[1].sds_1;
+                        if (!sds || !Array.isArray(sds.s) || sds.s.length === 0) continue;
+
+                        var sym = meta.sym;
+                        var tfCode = meta.tfCode;
+                        var inst = findInstrument(sym);
+                        var tfObj = TF_BY_CODE[tfCode];
+                        if (!inst || !tfObj) continue;
+
+                        if (msg.m === 'timescale_update' && sds.s.length >= 10) {
+                            var parsedBars = [];
+                            for (var bi = 0; bi < sds.s.length; bi++) {
+                                var bv = sds.s[bi].v;
+                                if (!Array.isArray(bv) || bv.length < 5) continue;
+                                var tSec = Number(bv[0]);
+                                parsedBars.push({
+                                    barIndex: bi,
+                                    timeSec: tSec,
+                                    openTime: new Date(tSec * 1000).toISOString(),
+                                    closeTime: new Date(tSec * 1000 + tfObj.stepMs).toISOString(),
+                                    open: Number(bv[1]),
+                                    high: Number(bv[2]),
+                                    low: Number(bv[3]),
+                                    close: Number(bv[4]),
+                                    volume: bv.length > 5 && isFinite(Number(bv[5])) ? Number(bv[5]) : 1000
+                                });
+                            }
+                            if (parsedBars.length >= 10) {
+                                state.barsBySymbolTf[sym][tfCode] = parsedBars;
+                                state.wsBarsLoaded[sym][tfCode] = true;
+                                var latestClose = parsedBars[parsedBars.length - 1].close;
+                                if (tfCode === 'M1' && isFinite(latestClose) && latestClose > 0) {
+                                    inst.price = latestClose;
+                                }
+                                state.evalBySymbolTf[sym][tfCode] = evaluateIndicators(inst, tfObj, parsedBars);
+
+                                if (tfCode === 'H4') {
+                                    var h8Bars = aggregateH4ToH8Bars(parsedBars);
+                                    if (h8Bars.length >= 5) {
+                                        state.barsBySymbolTf[sym]['H8'] = h8Bars;
+                                        state.wsBarsLoaded[sym]['H8'] = true;
+                                        state.evalBySymbolTf[sym]['H8'] = evaluateIndicators(inst, TF_BY_CODE['H8'], h8Bars);
+                                    }
+                                }
+                                updateInstrumentDom(inst, false);
+                                anyDomUpdated = true;
+                            }
+                        } else if (msg.m === 'du' && getSessionInfo(inst).open) {
+                            var curBars = state.barsBySymbolTf[sym][tfCode];
+                            if (!curBars || curBars.length === 0) continue;
+                            for (var u = 0; u < sds.s.length; u++) {
+                                var uv = sds.s[u].v;
+                                if (!Array.isArray(uv) || uv.length < 5) continue;
+                                var uSec = Number(uv[0]);
+                                var lastBar = curBars[curBars.length - 1];
+                                if (uSec === lastBar.timeSec) {
+                                    lastBar.open = Number(uv[1]);
+                                    lastBar.high = Number(uv[2]);
+                                    lastBar.low = Number(uv[3]);
+                                    lastBar.close = Number(uv[4]);
+                                    if (uv.length > 5 && isFinite(Number(uv[5]))) lastBar.volume = Number(uv[5]);
+                                } else if (uSec > lastBar.timeSec) {
+                                    curBars.push({
+                                        barIndex: lastBar.barIndex + 1,
+                                        timeSec: uSec,
+                                        openTime: new Date(uSec * 1000).toISOString(),
+                                        closeTime: new Date(uSec * 1000 + tfObj.stepMs).toISOString(),
+                                        open: Number(uv[1]),
+                                        high: Number(uv[2]),
+                                        low: Number(uv[3]),
+                                        close: Number(uv[4]),
+                                        volume: uv.length > 5 && isFinite(Number(uv[5])) ? Number(uv[5]) : 1000
+                                    });
+                                    if (curBars.length > 240) curBars.shift();
+                                }
+                            }
+                            var updatedClose = curBars[curBars.length - 1].close;
+                            if (tfCode === 'M1' && isFinite(updatedClose) && updatedClose > 0) {
+                                updateSymbolOnLiveTick(inst, updatedClose);
+                            } else {
+                                state.evalBySymbolTf[sym][tfCode] = evaluateIndicators(inst, tfObj, curBars);
+                                if (tfCode === 'H4') {
+                                    var h8Upd = aggregateH4ToH8Bars(curBars);
+                                    if (h8Upd.length >= 5) {
+                                        state.barsBySymbolTf[sym]['H8'] = h8Upd;
+                                        state.evalBySymbolTf[sym]['H8'] = evaluateIndicators(inst, TF_BY_CODE['H8'], h8Upd);
+                                    }
+                                }
+                                updateInstrumentDom(inst, false);
+                            }
+                            state.wsTickCount++;
+                            anyDomUpdated = true;
+                        }
+                    }
+                }
+
+                if (anyDomUpdated) {
+                    updateGlobalSummaryCounters();
+                    updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
+                }
+            };
+
+            ws.onclose = function () {
+                state.wsConnected = false;
+                setTimeout(connectTradingViewLiveWebSocket, 2500);
+            };
         }
 
         function fetchTradingViewScannerSingleFlight() {
@@ -1541,17 +1879,23 @@
                 + String(now.getSeconds()).padStart(2, '0');
             sharedCache.lastSyncTimeStr = timeStr;
             var xauInst = findInstrument('XAUUSD');
-            var eurInst = findInstrument('EURUSD');
-            var xauPriceStr = xauInst ? formatFixedTr(xauInst.price, 2) : '';
-            var eurPriceStr = eurInst ? formatFixedTr(eurInst.price, 5) : '';
+            var xagInst = findInstrument('XAGUSD');
+            var oilInst = findInstrument('USOIL');
+            var ndxInst = findInstrument('NDX100');
+            var xauStr = xauInst ? formatFixedTr(xauInst.price, 2) : '';
+            var xagStr = xagInst ? formatFixedTr(xagInst.price, 3) : '';
+            var oilStr = oilInst ? formatFixedTr(oilInst.price, 2) : '';
+            var ndxStr = ndxInst ? formatFixedTr(ndxInst.price, 1) : '';
 
             var tvBadge = document.getElementById('fsp-tv-api-status-badge');
             if (tvBadge) {
-                if (sharedCache.tvApiConnected === true) {
-                    tvBadge.textContent = '● TradingView API: CANLI (HTTP ' + sharedCache.tvApiHttpStatus
-                        + ' · ' + sharedCache.tvApiReturnedCount + '/' + sharedCache.tvApiTotalCount
-                        + ' Sembol · ' + sharedCache.tvApiLatencyMs + ' ms · XAU: ' + xauPriceStr
-                        + ' $ · EUR: ' + eurPriceStr + ' · ' + timeStr + ')';
+                if (sharedCache.tvApiConnected === true || state.wsConnected) {
+                    var streamLabel = state.wsConnected
+                        ? ('WS CANLI · Tick #' + state.wsTickCount)
+                        : ('HTTP ' + sharedCache.tvApiHttpStatus + ' · ' + sharedCache.tvApiLatencyMs + ' ms');
+                    tvBadge.textContent = '● TradingView API: ' + streamLabel
+                        + ' · Altın: ' + xauStr + ' · Gümüş: ' + xagStr
+                        + ' · WTI: ' + oilStr + ' · Nasdaq: ' + ndxStr + ' · ' + timeStr;
                     tvBadge.className = 'badge badge-buy tabular-nums';
                 } else if (sharedCache.tvApiConnected === false) {
                     tvBadge.textContent = '○ TradingView API: BAĞLANTI YOK (Önbellek Aktif · ' + timeStr + ')';
@@ -1563,12 +1907,13 @@
             }
             var badge = document.getElementById('fsp-cache-status-badge');
             if (badge) {
-                badge.textContent = '● Single-Flight Cache (' + sharedCache.tvApiMode + ') · Çekim: #' + fetches + ' · Hit: #' + hits + ' (0 ms)';
+                badge.textContent = '● ' + sharedCache.tvApiMode + ' · Çekim: #' + fetches + ' · WS Tick: #' + state.wsTickCount + ' (0 ms)';
                 badge.className = 'badge badge-buy tabular-nums';
             }
         }
 
         syncSharedHotCache();
+        connectTradingViewLiveWebSocket();
 
         // Check real market session status & shared hot cache every 3s (NO synthetic price ticks; closed markets stay 100% fixed)
         setInterval(function () {

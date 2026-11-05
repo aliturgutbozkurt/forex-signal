@@ -394,12 +394,14 @@ public class OhlcvAdapter implements MarketDataPort {
         int seed = Math.abs(symbol.value().hashCode() % 97) + tfShift;
         double tfAmp = switch (timeframe) {
             case M1 -> 0.35;
+            case M3 -> 0.50;
             case M5 -> 0.65;
             case M15 -> 1.00;
             case M30 -> 1.25;
             case H1 -> 1.55;
             case H2 -> 1.85;
             case H4 -> 2.20;
+            case H8 -> 2.50;
             case D1 -> 2.80;
             case W1 -> 3.60;
             case MN -> 4.50;

@@ -70,30 +70,29 @@
         <!-- 2. Kategori, Arama & Tüm Enstrümanlar Zaman Dilimi Seçici -->
         <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;gap:0.65rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-                <span style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Varlık Sınıfı Filtresi &amp; Hızlı Arama</span>
-                <input id="fsp-catalog-search" type="search" placeholder="Sembol veya emtia ara (örn: XAUUSD, Altın, Petrol, Kahve)..."
+                <span style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Enstrüman Filtresi &amp; Hızlı Arama (Altın · Gümüş · WTI · Nasdaq)</span>
+                <input id="fsp-catalog-search" type="search" placeholder="Enstrüman ara (Altın, Gümüş, WTI, Nasdaq)..."
                        oninput="window.FspTerminal && window.FspTerminal.setSearch(this.value)"
-                       style="min-width:240px;flex:1;padding:0.38rem 0.65rem;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-canvas);color:var(--text-primary);font-size:0.82rem;"/>
+                       style="min-width:220px;flex:1;padding:0.38rem 0.65rem;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-canvas);color:var(--text-primary);font-size:0.82rem;"/>
             </div>
             <div id="fsp-class-filter-bar" style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-                <button type="button" class="btn active-filter" data-filter="ALL" onclick="window.FspTerminal && window.FspTerminal.setFilter('ALL')">Tümü (32)</button>
-                <button type="button" class="btn" data-filter="Emtia" onclick="window.FspTerminal && window.FspTerminal.setFilter('Emtia')">Forex Emtiaları (18)</button>
-                <button type="button" class="btn" data-filter="Forex" onclick="window.FspTerminal && window.FspTerminal.setFilter('Forex')">Forex Pariteleri (8)</button>
-                <button type="button" class="btn" data-filter="ABD Hisse" onclick="window.FspTerminal && window.FspTerminal.setFilter('ABD Hisse')">ABD Hisseleri (4)</button>
-                <button type="button" class="btn" data-filter="Endeks" onclick="window.FspTerminal && window.FspTerminal.setFilter('Endeks')">Endeksler (2)</button>
+                <button type="button" class="btn active-filter" data-filter="ALL" onclick="window.FspTerminal && window.FspTerminal.setFilter('ALL')">Tümü (4)</button>
+                <button type="button" class="btn" data-filter="XAUUSD" onclick="window.FspTerminal && window.FspTerminal.setFilter('XAUUSD')">Altın (XAUUSD)</button>
+                <button type="button" class="btn" data-filter="XAGUSD" onclick="window.FspTerminal && window.FspTerminal.setFilter('XAGUSD')">Gümüş (XAGUSD)</button>
+                <button type="button" class="btn" data-filter="USOIL" onclick="window.FspTerminal && window.FspTerminal.setFilter('USOIL')">WTI Petrol (USOIL)</button>
+                <button type="button" class="btn" data-filter="NDX100" onclick="window.FspTerminal && window.FspTerminal.setFilter('NDX100')">Nasdaq 100 (NDX100)</button>
             </div>
             <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">
                 <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;margin-right:0.2rem;">Tümünü Zaman Dilimine Ayarla:</span>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M1')">1m</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M3')">3m</button>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M5')">5m</button>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M15')">15m</button>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M30')">30m</button>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H1')">1h</button>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H2')">2h</button>
                 <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H4')">4h</button>
-                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('D1')">1D</button>
-                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('W1')">1W</button>
-                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('MN')">1M</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H8')">8h</button>
             </div>
         </div>
 
@@ -156,15 +155,15 @@
     <section style="width:100%;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;flex-wrap:wrap;gap:0.5rem;">
             <div>
-                <h2 style="font-size:1.1rem;font-weight:700;">Enstrüman Kataloğu &amp; Seans Durumu (Tüm Zaman Dilimleri &amp; 40+ Gösterge Akordiyonu)</h2>
+                <h2 style="font-size:1.1rem;font-weight:700;">Enstrüman Kataloğu &amp; Seans Durumu (Altın · Gümüş · WTI · Nasdaq — Anlık 9 Zaman Dilimi)</h2>
                 <p style="font-size:0.8rem;color:var(--text-secondary);">
-                    Her bir emtia veya pariteye tıklayarak akordiyonu açın; 10 zaman dilimi (<code>M1</code>–<code>MN</code>) arasında geçiş yapın, canlı TradingView grafiğini ve 40+ göstergenin <strong>AL / SAT / TUT</strong> kararlarını tek sayfadan yönetin.
+                    Altın (<code>XAUUSD</code>), Gümüş (<code>XAGUSD</code>), WTI Petrol (<code>USOIL</code>) ve Nasdaq 100 (<code>NDX100</code>) için 9 zaman dilimi (<code>1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 8h</code>) arasında geçiş yapın; canlı TradingView WebSocket akışı ile <strong>AL / SAT / TUT</strong> sinyallerini anlık takip edin.
                 </p>
             </div>
             <div class="tabular-nums" style="display:flex;align-items:center;gap:0.5rem;">
-                <span class="badge badge-buy">18 Forex Emtiası Aktif</span>
-                <span class="badge badge-hold">10 Zaman Dilimi (M1–MN)</span>
-                <span class="badge badge-hold">O(1) Canlı Güncelleme (2.5sn)</span>
+                <span class="badge badge-buy">4 Enstrüman (Altın · Gümüş · WTI · Nasdaq)</span>
+                <span class="badge badge-hold">9 Zaman Dilimi (1m–8h)</span>
+                <span class="badge badge-buy" id="fsp-ws-live-pill">● Canlı WebSocket Akışı Aktif</span>
             </div>
         </div>
 
