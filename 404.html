@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="#{app.title}">Forex Sinyal Platformu (FSP)</title>
+    <link rel="manifest" href="manifest.webmanifest"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+<div class="legal-banner" role="note">
+    ⚠️ <strong th:text="#{app.legal.disclaimer}">Bu sistem karar destek aracıdır, yatırım tavsiyesi değildir.</strong>
+</div>
+
+<div id="fsp-aria-live" aria-live="polite" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
+
+<header class="app-header">
+    <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
+        <h1 style="font-size:1.08rem;font-weight:700;letter-spacing:-0.02em;">FSP · Tek Sayfa Emtia &amp; Forex Yönetim Terminali</h1>
+        <span id="fsp-tv-api-status-badge" class="badge badge-buy tabular-nums" title="TradingView Scanner API (https://scanner.tradingview.com/global/scan) canlı bağlantı durumu">
+            ● TradingView API: Kontrol Ediliyor...
+        </span>
+        <span id="fsp-cache-status-badge" class="badge badge-buy tabular-nums">● Single-Flight Cache Aktif (0 ms)</span>
+        <span id="fsp-global-live-clock" class="tabular-nums" style="font-size:0.75rem;color:var(--color-buy);font-weight:600;">
+            ● Dinamik Gösterge Motoru Aktif
+        </span>
+    </div>
+    <nav class="app-nav" style="flex-wrap:wrap;">
+        <button type="button" class="btn" onclick="window.FspTerminal && window.FspTerminal.expandAll()">Tümünü Aç</button>
+        <button type="button" class="btn" onclick="window.FspTerminal && window.FspTerminal.collapseAll()">Tümünü Kapat</button>
+        <button type="button" class="btn" onclick="window.FspTerminal && window.FspTerminal.toggleStrategyDrawer()">Strateji &amp; Backtest (§9)</button>
+        <button type="button" class="btn btn-buy" onclick="window.FspVoice && window.FspVoice.testBuyVoice()" th:text="#{voice.test.buy}">AL Sesi Test Et</button>
+        <button type="button" class="btn btn-sell" onclick="window.FspVoice && window.FspVoice.testSellVoice()" th:text="#{voice.test.sell}">SAT Sesi Test Et</button>
+        <button type="button" class="btn tabular-nums" onclick="document.getElementById('cmd-palette-backdrop').classList.add('open')">⌘K Arama</button>
+    </nav>
+</header>
+
+<main class="container-main">
+    <!-- Top Unified Single-Page Control & Summary Row -->
+    <section class="top-control-grid">
+        <!-- 1. Piyasa Karar Özeti (AL / SAT / TUT) -->
+        <div class="glass-card tabular-nums" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;gap:0.5rem;flex-wrap:wrap;">
+                <h2 style="font-size:0.95rem;font-weight:700;">Piyasa Karar Özeti (AL / SAT / TUT)</h2>
+                <span id="fsp-global-overall-badge" class="badge badge-buy">GENEL: AL AĞIRLIKLI</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.55rem;text-align:center;margin-bottom:0.6rem;">
+                <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--signal-buy-bg);border:1px solid var(--signal-buy-border);">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--signal-buy);">TOPLAM AL</div>
+                    <strong id="fsp-global-buy-count" style="font-size:1.25rem;color:var(--signal-buy);">18</strong>
+                </div>
+                <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--signal-sell-bg);border:1px solid var(--signal-sell-border);">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--signal-sell);">TOPLAM SAT</div>
+                    <strong id="fsp-global-sell-count" style="font-size:1.25rem;color:var(--signal-sell);">7</strong>
+                </div>
+                <div style="padding:0.45rem 0.35rem;border-radius:var(--radius-sm);background:var(--bg-glass-hover);border:1px solid var(--border-strong);">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">TOPLAM TUT</div>
+                    <strong id="fsp-global-hold-count" style="font-size:1.25rem;color:var(--text-primary);">7</strong>
+                </div>
+            </div>
+            <div style="height:7px;border-radius:999px;overflow:hidden;display:flex;background:var(--bg-canvas);border:1px solid var(--border-subtle);">
+                <div id="fsp-global-bar-buy" style="background:var(--signal-buy);width:56%;transition:width 240ms ease;"></div>
+                <div id="fsp-global-bar-hold" style="background:var(--border-strong);width:22%;transition:width 240ms ease;"></div>
+                <div id="fsp-global-bar-sell" style="background:var(--signal-sell);width:22%;transition:width 240ms ease;"></div>
+            </div>
+        </div>
+
+        <!-- 2. Kategori, Arama & Tüm Enstrümanlar Zaman Dilimi Seçici -->
+        <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;gap:0.65rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                <span style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Enstrüman Filtresi &amp; Hızlı Arama (Altın · Gümüş · WTI · Nasdaq)</span>
+                <input id="fsp-catalog-search" type="search" placeholder="Enstrüman ara (Altın, Gümüş, WTI, Nasdaq)..."
+                       oninput="window.FspTerminal && window.FspTerminal.setSearch(this.value)"
+                       style="min-width:220px;flex:1;padding:0.38rem 0.65rem;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-canvas);color:var(--text-primary);font-size:0.82rem;"/>
+            </div>
+            <div id="fsp-class-filter-bar" style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                <button type="button" class="btn active-filter" data-filter="ALL" onclick="window.FspTerminal && window.FspTerminal.setFilter('ALL')">Tümü (4)</button>
+                <button type="button" class="btn" data-filter="XAUUSD" onclick="window.FspTerminal && window.FspTerminal.setFilter('XAUUSD')">Altın (XAUUSD)</button>
+                <button type="button" class="btn" data-filter="XAGUSD" onclick="window.FspTerminal && window.FspTerminal.setFilter('XAGUSD')">Gümüş (XAGUSD)</button>
+                <button type="button" class="btn" data-filter="USOIL" onclick="window.FspTerminal && window.FspTerminal.setFilter('USOIL')">WTI Petrol (USOIL)</button>
+                <button type="button" class="btn" data-filter="NDX100" onclick="window.FspTerminal && window.FspTerminal.setFilter('NDX100')">Nasdaq 100 (NDX100)</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">
+                <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;margin-right:0.2rem;">Tümünü Zaman Dilimine Ayarla:</span>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M1')">1m</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M3')">3m</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M5')">5m</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M15')">15m</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('M30')">30m</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H1')">1h</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H2')">2h</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H4')">4h</button>
+                <button type="button" class="btn tabular-nums" style="padding:0.22rem 0.5rem;font-size:0.74rem;" onclick="window.FspTerminal && window.FspTerminal.setGlobalTimeframe('H8')">8h</button>
+            </div>
+        </div>
+
+        <!-- 3. AI Doğal Dil Sorgu (Tool Calling) -->
+        <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+                <h3 style="font-size:0.95rem;margin-bottom:0.5rem;">AI Doğal Dil Sorgu (Tool Calling)</h3>
+                <form id="fsp-ai-form" action="/" method="get" onsubmit="return window.FspTerminal ? window.FspTerminal.submitAiQuery(event) : true;" style="display:flex;gap:0.45rem;">
+                    <input id="fsp-ai-input" type="text" name="q" th:value="${aiQuery}"
+                           placeholder="Örn: Bugün emtialarda en güçlü AL sinyalleri?"
+                           style="flex:1;padding:0.45rem 0.7rem;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-canvas);color:var(--text-primary);font-size:0.83rem;"/>
+                    <button type="submit" class="btn">Sor</button>
+                </form>
+            </div>
+            <p id="fsp-ai-answer"
+               style="margin-top:0.55rem;font-size:0.8rem;color:var(--text-secondary);line-height:1.4;"
+               th:text="${aiAnswer != null} ? ${aiAnswer.answerTr()} : 'Emtia ve Forex göstergelerini doğal dille sorgulayabilirsiniz (örn: XAUUSD H1 durumu nedir?).'">
+            </p>
+        </div>
+    </section>
+
+    <!-- Collapsible Strategy & Walk-Forward Quality Gate Drawer (Single-Page Management) -->
+    <section id="fsp-strategy-drawer" class="glass-card" style="display:none;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+            <div>
+                <div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Strateji &amp; Kalite Kapısı (§9) — Tek Sayfa Yönetim</div>
+                <div style="font-weight:700;font-size:1rem;">
+                    <span th:text="${strategy.name()}">FSP Multi-Regime Confluence</span>
+                    <span class="badge tabular-nums" th:text="'v' + ${strategy.version()}">v1</span>
+                    <span class="badge" th:classappend="${metrics.experimental()} ? 'badge-degraded' : 'badge-buy'"
+                          th:text="${metrics.qualityBadge()}">EXPERIMENTAL</span>
+                </div>
+            </div>
+            <div class="tabular-nums" style="display:flex;gap:1.75rem;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:0.73rem;color:var(--text-muted);">Win Rate (TP1)</div>
+                    <strong style="font-size:1.05rem;" th:text="${metrics.winRatePct()} + '%'">62.5%</strong>
+                </div>
+                <div>
+                    <div style="font-size:0.73rem;color:var(--text-muted);">Profit Factor</div>
+                    <strong style="font-size:1.05rem;" th:text="${metrics.profitFactor()}">2.15</strong>
+                </div>
+                <div>
+                    <div style="font-size:0.73rem;color:var(--text-muted);">Expectancy</div>
+                    <strong style="font-size:1.05rem;" th:text="${metrics.expectancyR()} + 'R'">0.58R</strong>
+                </div>
+                <div>
+                    <div style="font-size:0.73rem;color:var(--text-muted);">Max Drawdown</div>
+                    <strong style="font-size:1.05rem;" th:text="${metrics.maxDrawdownPct()} + '%'">4.2%</strong>
+                </div>
+                <div>
+                    <div style="font-size:0.73rem;color:var(--text-muted);">Örneklem</div>
+                    <strong style="font-size:1.05rem;" th:text="${metrics.totalTrades()} + ' işlem'">24 işlem</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Full-Width Horizontal Accordion Catalog: Enstrüman Kataloğu & Seans Durumu -->
+    <section style="width:100%;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.85rem;flex-wrap:wrap;gap:0.5rem;">
+            <div>
+                <h2 style="font-size:1.1rem;font-weight:700;">Enstrüman Kataloğu &amp; Seans Durumu (Altın · Gümüş · WTI · Nasdaq — Anlık 9 Zaman Dilimi)</h2>
+                <p style="font-size:0.8rem;color:var(--text-secondary);">
+                    Altın (<code>XAUUSD</code>), Gümüş (<code>XAGUSD</code>), WTI Petrol (<code>USOIL</code>) ve Nasdaq 100 (<code>NDX100</code>) için 9 zaman dilimi (<code>1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 8h</code>) arasında geçiş yapın; canlı TradingView WebSocket akışı ile <strong>AL / SAT / TUT</strong> sinyallerini anlık takip edin.
+                </p>
+            </div>
+            <div class="tabular-nums" style="display:flex;align-items:center;gap:0.5rem;">
+                <span class="badge badge-buy">4 Enstrüman (Altın · Gümüş · WTI · Nasdaq)</span>
+                <span class="badge badge-hold">9 Zaman Dilimi (1m–8h)</span>
+                <span class="badge badge-buy" id="fsp-ws-live-pill">● Canlı WebSocket Akışı Aktif</span>
+            </div>
+        </div>
+
+        <!-- Accordion Container (Populated & Dynamically Updated by FspTerminal in voice.js, with SSR fallback below) -->
+        <div id="fsp-accordion-catalog" class="catalog-accordion-list">
+            <article th:each="inst, iterStat : ${instruments}"
+                     th:if="${inst.exchange() != 'BIST'}"
+                     class="inst-accordion"
+                     th:classappend="${iterStat.index == 0} ? 'open' : ''"
+                     th:attr="data-symbol=${inst.symbol().value()},data-class=${inst.assetClass().displayNameTr()}">
+                <div class="inst-accordion-header">
+                    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                        <span class="inst-accordion-chevron">▶</span>
+                        <strong style="font-size:1rem;" th:text="${inst.symbol().value()} + ' · ' + ${inst.displayName()}">XAUUSD · Spot Altın (Ons / USD)</strong>
+                        <span class="badge" th:text="${inst.assetClass().displayNameTr()}">Emtia</span>
+                        <span class="badge tabular-nums" th:text="${inst.quoteCurrency().code()}">USD</span>
+                        <span style="font-size:0.76rem;color:var(--signal-buy);font-weight:600;"
+                              th:text="${inst.sessionOpen()} ? '● Seans Açık (24x5)' : '○ Seans Kapalı'">● Seans Açık (24x5)</span>
+                    </div>
+                    <div class="tabular-nums" style="display:flex;align-items:center;gap:0.45rem;">
+                        <span class="badge badge-buy">AL</span>
+                        <span class="badge badge-sell">SAT</span>
+                        <span class="badge badge-hold">TUT</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+<!-- Command Palette (⌘K) -->
+<div id="cmd-palette-backdrop" class="cmd-palette-backdrop" role="dialog" aria-modal="true" aria-label="Komut Paleti">
+    <div class="cmd-palette">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <strong>Hızlı Enstrüman &amp; Akordiyon Atlama (⌘K)</strong>
+            <button type="button" class="btn" onclick="document.getElementById('cmd-palette-backdrop').classList.remove('open')">ESC</button>
+        </div>
+        <div id="fsp-cmd-palette-links" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <a th:each="inst : ${instruments}"
+               th:if="${inst.exchange() != 'BIST'}"
+               th:href="'#inst-' + ${inst.symbol().value()}"
+               class="btn tabular-nums"
+               th:text="${inst.symbol().value()} + ' (' + ${inst.quoteCurrency().code()} + ')'">XAUUSD</a>
+        </div>
+    </div>
+</div>
+
+<script src="js/voice.js"></script>
+</body>
+</html>
