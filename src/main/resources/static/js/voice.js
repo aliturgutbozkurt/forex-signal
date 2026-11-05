@@ -31,21 +31,21 @@
 
     var CATALOG_INSTRUMENTS = [
         // 18 Forex Commodities (Precious Metals, Energy, Industrial Metals, Agriculture/Softs)
-        { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAUUSD', scannerSymbol: 'OANDA:XAUUSD', price: 4124.50 },
-        { symbol: 'XAGUSD', name: 'Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'COMEX', tvSymbol: 'COMEX:SI1!', scannerSymbol: 'COMEX:SI1!', price: 52.710 },
-        { symbol: 'XPTUSD', name: 'Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:PL1!', scannerSymbol: 'NYMEX:PL1!', price: 1519.00 },
-        { symbol: 'XPDUSD', name: 'Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:PA1!', scannerSymbol: 'NYMEX:PA1!', price: 1023.50 },
-        { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:CL1!', scannerSymbol: 'NYMEX:CL1!', price: 88.65 },
-        { symbol: 'UKOIL', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEEUR', tvSymbol: 'ICEEUR:BRN1!', scannerSymbol: 'ICEEUR:BRN1!', price: 96.19 },
-        { symbol: 'NATGAS', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:NG1!', scannerSymbol: 'NYMEX:NG1!', price: 2.944 },
+        { symbol: 'XAUUSD', name: 'Spot Altın (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XAUUSD', scannerSymbol: 'OANDA:XAUUSD', price: 4130.10 },
+        { symbol: 'XAGUSD', name: 'Spot Gümüş (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:SILVER', scannerSymbol: 'TVC:SILVER', price: 52.830 },
+        { symbol: 'XPTUSD', name: 'Spot Platin (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:PLATINUM', scannerSymbol: 'TVC:PLATINUM', price: 1522.50 },
+        { symbol: 'XPDUSD', name: 'Spot Paladyum (Ons / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'TVC', tvSymbol: 'TVC:PALLADIUM', scannerSymbol: 'TVC:PALLADIUM', price: 1030.43 },
+        { symbol: 'USOIL', name: 'WTI Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USOIL', scannerSymbol: 'FX:USOIL', price: 88.58 },
+        { symbol: 'UKOIL', name: 'Brent Ham Petrol (Varil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:UKOIL', scannerSymbol: 'FX:UKOIL', price: 96.02 },
+        { symbol: 'NATGAS', name: 'Doğalgaz (Natural Gas / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:NATGASUSD', scannerSymbol: 'OANDA:NATGASUSD', price: 2.708 },
         { symbol: 'GASOLINE', name: 'RBOB Benzin (Galon / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:RB1!', scannerSymbol: 'NYMEX:RB1!', price: 2.7513 },
         { symbol: 'HEATOIL', name: 'Kalorifer Yakıtı (Heating Oil / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'NYMEX', tvSymbol: 'NYMEX:HO1!', scannerSymbol: 'NYMEX:HO1!', price: 4.2461 },
-        { symbol: 'COPPER', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'COMEX', tvSymbol: 'COMEX:HG1!', scannerSymbol: 'COMEX:HG1!', price: 6.4290 },
+        { symbol: 'COPPER', name: 'Bakır (High Grade Copper / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:XCUUSD', scannerSymbol: 'OANDA:XCUUSD', price: 6.3500 },
         { symbol: 'ALUMINUM', name: 'Alüminyum (Ton / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'COMEX', tvSymbol: 'COMEX:ALI1!', scannerSymbol: 'COMEX:ALI1!', price: 3215.25 },
-        { symbol: 'WHEAT', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'CBOT', tvSymbol: 'CBOT:ZW1!', scannerSymbol: 'CBOT:ZW1!', price: 598.50 },
-        { symbol: 'CORN', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'CBOT', tvSymbol: 'CBOT:ZC1!', scannerSymbol: 'CBOT:ZC1!', price: 444.25 },
-        { symbol: 'SOYBN', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'CBOT', tvSymbol: 'CBOT:ZS1!', scannerSymbol: 'CBOT:ZS1!', price: 1202.25 },
-        { symbol: 'SUGAR', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:SB1!', scannerSymbol: 'ICEUS:SB1!', price: 18.47 },
+        { symbol: 'WHEAT', name: 'Buğday (Wheat / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:WHEATUSD', scannerSymbol: 'OANDA:WHEATUSD', price: 5.989 },
+        { symbol: 'CORN', name: 'Mısır (Corn / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:CORNUSD', scannerSymbol: 'OANDA:CORNUSD', price: 4.398 },
+        { symbol: 'SOYBN', name: 'Soya Fasulyesi (Soybeans / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SOYBNUSD', scannerSymbol: 'OANDA:SOYBNUSD', price: 11.930 },
+        { symbol: 'SUGAR', name: 'Şeker (Sugar No. 11 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'OANDA', tvSymbol: 'OANDA:SUGARUSD', scannerSymbol: 'OANDA:SUGARUSD', price: 0.1781 },
         { symbol: 'COFFEE', name: 'Kahve (Coffee C / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:KC1!', scannerSymbol: 'ICEUS:KC1!', price: 279.80 },
         { symbol: 'COCOA', name: 'Kakao (Cocoa / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CC1!', scannerSymbol: 'ICEUS:CC1!', price: 5358.00 },
         { symbol: 'COTTON', name: 'Pamuk (Cotton No. 2 / USD)', assetClass: 'Emtia', currency: 'USD', exchange: 'ICEUS', tvSymbol: 'ICEUS:CT1!', scannerSymbol: 'ICEUS:CT1!', price: 78.71 },
@@ -57,7 +57,7 @@
         { symbol: 'AUDUSD', name: 'Avustralya Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:AUDUSD', scannerSymbol: 'FX:AUDUSD', price: 0.70027 },
         { symbol: 'USDCAD', name: 'ABD Doları / Kanada Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:USDCAD', scannerSymbol: 'FX:USDCAD', price: 1.39737 },
         { symbol: 'NZDUSD', name: 'Yeni Zelanda Doları / ABD Doları', assetClass: 'Forex', currency: 'USD', exchange: 'FX', tvSymbol: 'FX:NZDUSD', scannerSymbol: 'FX:NZDUSD', price: 0.56196 },
-        { symbol: 'USDTRY', name: 'ABD Doları / Türk Lirası', assetClass: 'Forex', currency: 'TRY', exchange: 'FX', tvSymbol: 'FX:USDTRY', scannerSymbol: 'FX:USDTRY', price: 50.0158 },
+        { symbol: 'USDTRY', name: 'ABD Doları / Türk Lirası', assetClass: 'Forex', currency: 'TRY', exchange: 'FX', tvSymbol: 'FX:USDTRY', scannerSymbol: 'FX:USDTRY', price: 50.0472 },
         // 4 US Equities
         { symbol: 'AAPL', name: 'Apple Inc.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:AAPL', scannerSymbol: 'NASDAQ:AAPL', price: 349.51 },
         { symbol: 'NVDA', name: 'NVIDIA Corp.', assetClass: 'ABD Hisse', currency: 'USD', exchange: 'NASDAQ', tvSymbol: 'NASDAQ:NVDA', scannerSymbol: 'NASDAQ:NVDA', price: 200.13 },
@@ -75,6 +75,8 @@
         selectedTfBySymbol: {},
         barsBySymbolTf: {},
         evalBySymbolTf: {},
+        tvMatrixBySymbol: {},
+        initialMatrixSynced: {},
         canvasHandles: {},
         tvMountedKey: {},
         tickCount: 0
@@ -180,19 +182,18 @@
         for (var s = 0; s < sym.length; s++) seed += sym.charCodeAt(s) * (s + 5);
         for (var c = 0; c < tf.length; c++) seed += tf.charCodeAt(c) * (c + 19) * 31;
 
-        // Distinct directional posture per symbol + timeframe
-        var postureSign = ((seed % 5) === 0) ? -0.95 : (((seed % 3) === 0) ? -0.65 : 1.05);
-        var effDrift = driftBias * postureSign;
-        var tfPriceNudge = 1.0 + Math.sin(seed * 0.7) * 0.0011 * amp;
-        var effectiveLatestClose = baseClose * tfPriceNudge;
+        // Realistic per-timeframe volatility scale so historical bars match real TradingView chart scale
+        var tfScale = tfObj.amp * 0.08;
+        var effDrift = driftBias * 0.25;
+        var effectiveLatestClose = baseClose;
 
         function rawFactorAt(idx) {
             var freq1 = 0.16 + ((seed % 7) * 0.015);
             var freq2 = 0.05 + ((seed % 5) * 0.008);
-            var w = (Math.sin((idx + seed) * freq1) * 0.0085 + Math.cos((idx + seed) * freq2) * 0.012) * amp;
-            var d = ((idx - 46) * 0.00048 * amp) * effDrift;
+            var w = (Math.sin((idx + seed) * freq1) * 0.0085 + Math.cos((idx + seed) * freq2) * 0.012) * tfScale;
+            var d = ((idx - 46) * 0.00048 * tfScale) * effDrift;
             var oF = Math.max(0.1, 1.0 + w + d);
-            var dF = Math.sin((idx + seed) * 0.37) * 0.0046 * amp * effDrift;
+            var dF = Math.sin((idx + seed) * 0.37) * 0.0046 * tfScale * effDrift;
             return Math.max(0.1, oF + dF);
         }
 
@@ -204,13 +205,13 @@
         for (var i = 0; i < 65; i++) {
             var freq1 = 0.16 + ((seed % 7) * 0.015);
             var freq2 = 0.05 + ((seed % 5) * 0.008);
-            var w = (Math.sin((i + seed) * freq1) * 0.0085 + Math.cos((i + seed) * freq2) * 0.012) * amp;
-            var d = ((i - 46) * 0.00048 * amp) * effDrift;
+            var w = (Math.sin((i + seed) * freq1) * 0.0085 + Math.cos((i + seed) * freq2) * 0.012) * tfScale;
+            var d = ((i - 46) * 0.00048 * tfScale) * effDrift;
             var oF = Math.max(0.1, 1.0 + w + d);
-            var dF = Math.sin((i + seed) * 0.37) * 0.0046 * amp * effDrift;
+            var dF = Math.sin((i + seed) * 0.37) * 0.0046 * tfScale * effDrift;
             var cF = Math.max(0.1, oF + dF);
-            var hF = Math.max(oF, cF) + Math.abs(dF) * 0.65 + 0.0014 * amp;
-            var lF = Math.max(0.05, Math.min(oF, cF) - Math.abs(dF) * 0.55 - 0.0012 * amp);
+            var hF = Math.max(oF, cF) + Math.abs(dF) * 0.65 + 0.0014 * tfScale;
+            var lF = Math.max(0.05, Math.min(oF, cF) - Math.abs(dF) * 0.55 - 0.0012 * tfScale);
 
             var open = Math.round(oF * scale * mult) / mult;
             var close = Math.round(cF * scale * mult) / mult;
@@ -379,6 +380,72 @@
         var poc = (vwap + sma20) / 2.0;
         var prevBar = bars[Math.max(0, n - 2)];
         var pivot = (prevBar.high + prevBar.low + prevBar.close) / 3.0;
+        var tvRecAll = null;
+        var tvRecMa = null;
+        var tvRecOther = null;
+
+        // Override with 100% real TradingView multi-timeframe indicator values when available in Shared Hot Cache
+        var tvRow = state.tvMatrixBySymbol && state.tvMatrixBySymbol[sym];
+        if (Array.isArray(tvRow) && tvRow.length >= 356) {
+            var tfIdx = 2;
+            for (var ti = 0; ti < TIMEFRAMES.length; ti++) {
+                if (TIMEFRAMES[ti].code === tfObj.code) {
+                    tfIdx = ti;
+                    break;
+                }
+            }
+            var off = 6 + tfIdx * 35;
+            // If a continuous futures contract only reports D1/W1/MN, fall back to D1 (index 7) for indicator alignment
+            if (!isFinite(Number(tvRow[off + 4])) && isFinite(Number(tvRow[6 + 7 * 35 + 4]))) {
+                off = 6 + 7 * 35;
+            }
+            function tvVal(k, fallback) {
+                var v = Number(tvRow[off + k]);
+                return (v !== null && !isNaN(v) && isFinite(v)) ? v : fallback;
+            }
+            if (isFinite(Number(tvRow[off])) && Number(tvRow[off]) > 0) {
+                close = Number(tvRow[off]);
+                last.close = close;
+            }
+            rsi14 = tvVal(4, rsi14);
+            ema9 = tvVal(5, ema9);
+            ema21 = tvVal(6, ema21);
+            ema50 = tvVal(7, ema50);
+            ema200 = tvVal(8, ema200);
+            sma20 = tvVal(9, sma20);
+            hma16 = tvVal(10, hma16);
+            macdLine = tvVal(11, macdLine);
+            macdSignal = tvVal(12, macdSignal);
+            macdHist = macdLine - macdSignal;
+            stochK = tvVal(13, stochK);
+            stochD = tvVal(14, stochD);
+            stochRsi = tvVal(15, stochRsi);
+            cci20 = tvVal(16, cci20);
+            adx14 = tvVal(17, adx14);
+            plusDi = tvVal(18, plusDi);
+            minusDi = tvVal(19, minusDi);
+            ao = tvVal(20, ao);
+            mom10 = tvVal(21, mom10);
+            uo = tvVal(23, uo);
+            bbUpper = tvVal(24, bbUpper);
+            bbLower = tvVal(25, bbLower);
+            bbSqueeze = ((bbUpper - bbLower) / Math.max(1e-9, sma20)) < 0.0025;
+            atr14 = Math.max(1e-6, tvVal(26, atr14));
+            stBullish = (close >= sma20) && (ema9 >= ema21);
+            supertrend = stBullish ? (close - 2.0 * atr14) : (close + 2.0 * atr14);
+            psar = tvVal(27, psar);
+            psarBullish = close >= psar;
+            tenkan = tvVal(28, tenkan);
+            kijun = tvVal(29, kijun);
+            spanA = (tenkan + kijun) / 2.0;
+            spanB = sma20;
+            vwap = tvVal(30, sma20);
+            poc = (vwap + sma20) / 2.0;
+            pivot = tvVal(31, pivot);
+            tvRecAll = tvVal(32, null);
+            tvRecMa = tvVal(33, null);
+            tvRecOther = tvVal(34, null);
+        }
 
         function makeRow(label, shortVal, valueText, sign) {
             return {
@@ -474,11 +541,14 @@
                 (cmf20 > 0.05 && mfi14 >= 50.0) ? 1 : ((cmf20 < -0.05 && mfi14 < 50.0) ? -1 : 0)
             ),
             makeRow(
-                'Volume Profile POC & Pivot',
+                'Pivot & TradingView Recommend',
                 formatFixedTr(pivot, decimals),
-                'POC ' + formatFixedTr(poc, decimals) + ' / Pivot ' + formatFixedTr(pivot, decimals),
-                (close > poc && close > pivot) ? 1
-                    : ((close < poc && close < pivot) ? -1 : 0)
+                tvRecAll !== null
+                    ? ('Pivot ' + formatFixedTr(pivot, decimals) + ' · TV Özet: ' + (tvRecAll >= 0 ? '+' : '') + formatFixedTr(tvRecAll, 2))
+                    : ('POC ' + formatFixedTr(poc, decimals) + ' / Pivot ' + formatFixedTr(pivot, decimals)),
+                tvRecAll !== null
+                    ? (tvRecAll > 0.08 ? 1 : (tvRecAll < -0.08 ? -1 : 0))
+                    : ((close > poc && close > pivot) ? 1 : ((close < poc && close < pivot) ? -1 : 0))
             )
         ];
 
@@ -1223,8 +1293,25 @@
         // INV-CACHE-2: Clients always read valid snapshot in 0ms from Shared Hot Cache.
         // INV-CACHE-3: When market session is closed (~sessionOpen[i]), prices and AL/SAT/TUT signals NEVER change.
         // INV-CACHE-4: Signals only update when session is OPEN and real cached price changed.
+        var TF_SCAN_SUFFIXES = ['|1', '|5', '|15', '|30', '|60', '|120', '|240', '', '|1W', '|1M'];
+        var TF_SCAN_BASE_COLS = [
+            'close', 'open', 'high', 'low', 'RSI', 'EMA10', 'EMA20', 'EMA50', 'EMA200',
+            'SMA20', 'HullMA9', 'MACD.macd', 'MACD.signal', 'Stoch.K', 'Stoch.D',
+            'Stoch.RSI.K', 'CCI20', 'ADX', 'ADX+DI', 'ADX-DI', 'AO', 'Mom', 'W.R',
+            'UO', 'BB.upper', 'BB.lower', 'ATR', 'P.SAR', 'Ichimoku.CLine',
+            'Ichimoku.BLine', 'VWAP', 'Pivot.M.Classic.Middle', 'Recommend.All',
+            'Recommend.MA', 'Recommend.Other'
+        ];
+        var FULL_SCAN_COLUMNS = ['close', 'open', 'high', 'low', 'volume', 'change'];
+        for (var sfxIdx = 0; sfxIdx < TF_SCAN_SUFFIXES.length; sfxIdx++) {
+            var sfx = TF_SCAN_SUFFIXES[sfxIdx];
+            for (var bcIdx = 0; bcIdx < TF_SCAN_BASE_COLS.length; bcIdx++) {
+                FULL_SCAN_COLUMNS.push(TF_SCAN_BASE_COLS[bcIdx] + sfx);
+            }
+        }
+
         var sharedCache = {
-            KEY: 'fsp_shared_hot_cache_v4',
+            KEY: 'fsp_shared_hot_cache_v5',
             TTL_MS: 2000,
             singleFlightFetches: 1,
             cacheHits: 1,
@@ -1238,7 +1325,7 @@
             lastSyncTimeStr: ''
         };
 
-        function applyRealPricesFromCache(pricesMap) {
+        function applyRealPricesFromCache(pricesMap, tvMatrixMap) {
             if (!pricesMap) return;
             var anyChanged = false;
             var nowIso = new Date().toISOString();
@@ -1247,11 +1334,18 @@
                 var inst = CATALOG_INSTRUMENTS[i];
                 var sym = inst.symbol;
                 var sess = getSessionInfo(inst);
+                var isFirstMatrixSync = !state.initialMatrixSynced[sym];
 
                 // INV-CACHE-3 (ClosedMarketSignalsFrozen):
-                // Never update price or recalculate AL/SAT/TUT signals when market session is closed!
-                if (!sess.open) {
+                // Once initial real TradingView matrix is synced, never mutate closed-session markets!
+                if (!sess.open && !isFirstMatrixSync) {
                     continue;
+                }
+
+                var hasNewMatrix = tvMatrixMap && Array.isArray(tvMatrixMap[sym]) && tvMatrixMap[sym].length >= 356;
+                if (hasNewMatrix) {
+                    state.tvMatrixBySymbol[sym] = tvMatrixMap[sym];
+                    state.initialMatrixSynced[sym] = true;
                 }
 
                 var rawNewPrice = Number(pricesMap[sym]);
@@ -1265,8 +1359,8 @@
                     ? state.evalBySymbolTf[sym]['M15'].close
                     : inst.price;
 
-                // INV-CACHE-4 (SignalChangesOnlyOnRealOpenPriceMove):
-                if (Math.abs(newPrice - prevClose) > (0.1 / mult)) {
+                // INV-CACHE-4: Update on first real TradingView indicator matrix sync or when open-market price moves
+                if (isFirstMatrixSync || Math.abs(newPrice - prevClose) > (0.1 / mult)) {
                     var ratio = prevClose > 0 ? (newPrice / prevClose) : 1.0;
                     inst.price = newPrice;
                     for (var t = 0; t < TIMEFRAMES.length; t++) {
@@ -1274,7 +1368,6 @@
                         var bars = state.barsBySymbolTf[sym][tfObj.code];
                         if (!bars || !bars.length) continue;
                         if (Math.abs(ratio - 1.0) > 0.0005) {
-                            // Keep historical closed bars proportionally aligned when syncing to real market level
                             for (var b = 0; b < bars.length; b++) {
                                 bars[b].open = Math.round(bars[b].open * ratio * mult) / mult;
                                 bars[b].high = Math.round(bars[b].high * ratio * mult) / mult;
@@ -1309,7 +1402,7 @@
             }
             var bodyJson = JSON.stringify({
                 symbols: { tickers: tickers, query: { types: [] } },
-                columns: ['close']
+                columns: FULL_SCAN_COLUMNS
             });
             var t0 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
             var httpStatus = 0;
@@ -1327,6 +1420,7 @@
                     var t1 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
                     var latencyMs = Math.max(1, Math.round(t1 - t0));
                     var priceMap = {};
+                    var matrixMap = {};
                     var count = 0;
                     if (resp && Array.isArray(resp.data)) {
                         for (var k = 0; k < resp.data.length; k++) {
@@ -1336,6 +1430,7 @@
                                 var closeVal = Number(row.d[0]);
                                 if (sym && isFinite(closeVal) && closeVal > 0) {
                                     priceMap[sym] = closeVal;
+                                    matrixMap[sym] = row.d;
                                     count++;
                                 }
                             }
@@ -1346,8 +1441,8 @@
                     sharedCache.tvApiLatencyMs = latencyMs;
                     sharedCache.tvApiReturnedCount = count;
                     sharedCache.tvApiTotalCount = tickers.length;
-                    sharedCache.tvApiMode = 'Doğrudan TradingView Scanner';
-                    return priceMap;
+                    sharedCache.tvApiMode = 'Doğrudan TradingView 356-Sütun';
+                    return { prices: priceMap, tvMatrix: matrixMap };
                 });
         }
 
@@ -1359,7 +1454,7 @@
                 if (raw) {
                     var parsed = JSON.parse(raw);
                     if (parsed && parsed.prices) {
-                        applyRealPricesFromCache(parsed.prices);
+                        applyRealPricesFromCache(parsed.prices, parsed.tvMatrix);
                     }
                     // Only skip network fetch if we have ALREADY verified live TradingView API connection in this tab session
                     if (sharedCache.tvApiConnected !== null && parsed && parsed.updatedAt && (nowMs - parsed.updatedAt) < sharedCache.TTL_MS) {
@@ -1391,15 +1486,16 @@
                     sharedCache.tvApiLatencyMs = snap.tvApiLatencyMs || Math.max(1, Math.round(tEnd - tStart));
                     sharedCache.tvApiReturnedCount = snap.tvApiReturnedCount || snap.instrumentCount || 32;
                     sharedCache.tvApiTotalCount = snap.tvApiTotalCount || 32;
-                    sharedCache.tvApiMode = 'Backend Single-Flight';
+                    sharedCache.tvApiMode = 'Backend Single-Flight (356 Sütun)';
                     if (snap && snap.prices) {
-                        applyRealPricesFromCache(snap.prices);
+                        applyRealPricesFromCache(snap.prices, snap.tvMatrix);
                         try {
                             if (window.localStorage) {
                                 window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
                                     updatedAt: Date.now(),
                                     singleFlightFetches: sharedCache.singleFlightFetches,
-                                    prices: snap.prices
+                                    prices: snap.prices,
+                                    tvMatrix: snap.tvMatrix
                                 }));
                             }
                         } catch (err) {
@@ -1411,15 +1507,16 @@
                 .catch(function () {
                     // Static / GitHub Pages environment: single-flight collector fetches directly from TradingView Scanner
                     fetchTradingViewScannerSingleFlight()
-                        .then(function (tvPrices) {
+                        .then(function (res) {
                             sharedCache.singleFlightFetches++;
-                            applyRealPricesFromCache(tvPrices);
+                            applyRealPricesFromCache(res.prices, res.tvMatrix);
                             try {
                                 if (window.localStorage) {
                                     window.localStorage.setItem(sharedCache.KEY, JSON.stringify({
                                         updatedAt: Date.now(),
                                         singleFlightFetches: sharedCache.singleFlightFetches,
-                                        prices: tvPrices
+                                        prices: res.prices,
+                                        tvMatrix: res.tvMatrix
                                     }));
                                 }
                             } catch (err) {

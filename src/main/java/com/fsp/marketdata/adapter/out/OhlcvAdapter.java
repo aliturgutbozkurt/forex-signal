@@ -44,42 +44,55 @@ public class OhlcvAdapter implements MarketDataPort {
     private static final Instant EPOCH_ANCHOR = Instant.parse("2026-11-01T00:00:00Z");
     private static final long REFERENCE_LATEST_BAR_INDEX = 64L;
     private static final long SHARED_CACHE_TTL_MS = 2_500L;
-    private static final Pattern TV_ROW_PATTERN = Pattern.compile(
-            "\"s\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"d\"\\s*:\\s*\\[\\s*(-?[0-9]+(?:\\.[0-9]+)?)"
+    private static final Pattern TV_FULL_ROW_PATTERN = Pattern.compile(
+            "\"s\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"d\"\\s*:\\s*\\[([^\\]]*)\\]"
+    );
+
+    private static final List<String> TF_SUFFIXES = List.of(
+            "|1", "|5", "|15", "|30", "|60", "|120", "|240", "", "|1W", "|1M"
+    );
+
+    private static final List<String> TF_INDICATOR_COLS = List.of(
+            "close", "open", "high", "low", "RSI", "EMA10", "EMA20", "EMA50", "EMA200",
+            "SMA20", "HullMA9", "MACD.macd", "MACD.signal", "Stoch.K", "Stoch.D",
+            "Stoch.RSI.K", "CCI20", "ADX", "ADX+DI", "ADX-DI", "AO", "Mom", "W.R",
+            "UO", "BB.upper", "BB.lower", "ATR", "P.SAR", "Ichimoku.CLine",
+            "Ichimoku.BLine", "VWAP", "Pivot.M.Classic.Middle", "Recommend.All",
+            "Recommend.MA", "Recommend.Other"
     );
 
     private static final Map<String, Double> BASE_PRICES = Map.ofEntries(
             // Precious Metals
-            Map.entry("XAUUSD", 4060.36),
-            Map.entry("XAGUSD", 52.282),
-            Map.entry("XPTUSD", 1498.20),
-            Map.entry("XPDUSD", 1003.00),
+            Map.entry("XAUUSD", 4130.10),
+            Map.entry("XAGUSD", 52.830),
+            Map.entry("XPTUSD", 1522.50),
+            Map.entry("XPDUSD", 1030.43),
             // Energy Commodities
-            Map.entry("USOIL", 88.12),
-            Map.entry("UKOIL", 94.62),
-            Map.entry("NATGAS", 2.959),
-            Map.entry("GASOLINE", 2.7286),
-            Map.entry("HEATOIL", 4.2055),
+            Map.entry("USOIL", 88.58),
+            Map.entry("UKOIL", 96.02),
+            Map.entry("NATGAS", 2.708),
+            Map.entry("GASOLINE", 2.7513),
+            Map.entry("HEATOIL", 4.2461),
             // Industrial Metals
-            Map.entry("COPPER", 6.4290),
-            Map.entry("ALUMINUM", 3181.50),
+            Map.entry("COPPER", 6.3500),
+            Map.entry("ALUMINUM", 3215.25),
             // Agricultural & Soft Commodities
-            Map.entry("WHEAT", 598.50),
-            Map.entry("CORN", 444.25),
-            Map.entry("SOYBN", 1202.25),
-            Map.entry("SUGAR", 18.47),
-            Map.entry("COFFEE", 279.50),
-            Map.entry("COCOA", 5427.00),
-            Map.entry("COTTON", 78.15),
+            Map.entry("WHEAT", 5.989),
+            Map.entry("CORN", 4.398),
+            Map.entry("SOYBN", 11.930),
+            Map.entry("SUGAR", 0.1781),
+            Map.entry("COFFEE", 279.80),
+            Map.entry("COCOA", 5358.00),
+            Map.entry("COTTON", 78.71),
             // Forex Pairs
-            Map.entry("EURUSD", 1.12296),
+            Map.entry("EURUSD", 1.12343),
             Map.entry("GBPUSD", 1.34674),
             Map.entry("USDJPY", 158.362),
             Map.entry("USDCHF", 0.81601),
             Map.entry("AUDUSD", 0.70027),
             Map.entry("USDCAD", 1.39737),
             Map.entry("NZDUSD", 0.56196),
-            Map.entry("USDTRY", 50.0158),
+            Map.entry("USDTRY", 50.0472),
             // US Equities
             Map.entry("AAPL", 349.51),
             Map.entry("NVDA", 200.13),
@@ -91,25 +104,25 @@ public class OhlcvAdapter implements MarketDataPort {
     );
 
     private static final Map<String, String> TV_TICKER_TO_SYMBOL = Map.ofEntries(
-            // Precious Metals
+            // Precious Metals (full 10-timeframe intraday + D/W/M indicator support)
             Map.entry("OANDA:XAUUSD", "XAUUSD"),
-            Map.entry("COMEX:SI1!", "XAGUSD"),
-            Map.entry("NYMEX:PL1!", "XPTUSD"),
-            Map.entry("NYMEX:PA1!", "XPDUSD"),
+            Map.entry("TVC:SILVER", "XAGUSD"),
+            Map.entry("TVC:PLATINUM", "XPTUSD"),
+            Map.entry("TVC:PALLADIUM", "XPDUSD"),
             // Energy Commodities
-            Map.entry("NYMEX:CL1!", "USOIL"),
-            Map.entry("ICEEUR:BRN1!", "UKOIL"),
-            Map.entry("NYMEX:NG1!", "NATGAS"),
+            Map.entry("FX:USOIL", "USOIL"),
+            Map.entry("FX:UKOIL", "UKOIL"),
+            Map.entry("OANDA:NATGASUSD", "NATGAS"),
             Map.entry("NYMEX:RB1!", "GASOLINE"),
             Map.entry("NYMEX:HO1!", "HEATOIL"),
             // Industrial Metals
-            Map.entry("COMEX:HG1!", "COPPER"),
+            Map.entry("OANDA:XCUUSD", "COPPER"),
             Map.entry("COMEX:ALI1!", "ALUMINUM"),
             // Agricultural & Soft Commodities
-            Map.entry("CBOT:ZW1!", "WHEAT"),
-            Map.entry("CBOT:ZC1!", "CORN"),
-            Map.entry("CBOT:ZS1!", "SOYBN"),
-            Map.entry("ICEUS:SB1!", "SUGAR"),
+            Map.entry("OANDA:WHEATUSD", "WHEAT"),
+            Map.entry("OANDA:CORNUSD", "CORN"),
+            Map.entry("OANDA:SOYBNUSD", "SOYBN"),
+            Map.entry("OANDA:SUGARUSD", "SUGAR"),
             Map.entry("ICEUS:KC1!", "COFFEE"),
             Map.entry("ICEUS:CC1!", "COCOA"),
             Map.entry("ICEUS:CT1!", "COTTON"),
@@ -133,6 +146,7 @@ public class OhlcvAdapter implements MarketDataPort {
     );
 
     private final AtomicReference<Map<String, Double>> livePricesRef = new AtomicReference<>(Map.copyOf(BASE_PRICES));
+    private final AtomicReference<Map<String, List<Double>>> tvMatrixRef = new AtomicReference<>(Map.of());
     private final Map<String, Bar> customBackfillStore = new ConcurrentHashMap<>();
     private final AtomicBoolean singleFlightLock = new AtomicBoolean(false);
     private final AtomicBoolean initialSeedCompleted = new AtomicBoolean(false);
@@ -154,7 +168,18 @@ public class OhlcvAdapter implements MarketDataPort {
                 .map(t -> "\"" + t + "\"")
                 .reduce((a, b) -> a + "," + b)
                 .orElse("");
-        this.cachedBatchPayload = "{\"symbols\":{\"tickers\":[" + tickersJson + "],\"query\":{\"types\":[]}},\"columns\":[\"close\"]}";
+        List<String> allCols = new ArrayList<>(356);
+        allCols.addAll(List.of("close", "open", "high", "low", "volume", "change"));
+        for (String suf : TF_SUFFIXES) {
+            for (String col : TF_INDICATOR_COLS) {
+                allCols.add(col + suf);
+            }
+        }
+        String colsJson = allCols.stream()
+                .map(c -> "\"" + c + "\"")
+                .reduce((a, b) -> a + "," + b)
+                .orElse("\"close\"");
+        this.cachedBatchPayload = "{\"symbols\":{\"tickers\":[" + tickersJson + "],\"query\":{\"types\":[]}},\"columns\":[" + colsJson + "]}";
 
         // Initial synchronous Single-Flight fetch so cache and tvApiConnected are immediately warm on boot
         executeSingleFlightFetch();
@@ -245,21 +270,42 @@ public class OhlcvAdapter implements MarketDataPort {
                 boolean isFirstSeed = !initialSeedCompleted.get();
                 Map<String, Double> currentSnap = livePricesRef.get();
                 Map<String, Double> nextSnap = new HashMap<>(currentSnap);
-                Matcher matcher = TV_ROW_PATTERN.matcher(response.body());
+                Map<String, List<Double>> nextMatrix = new HashMap<>(tvMatrixRef.get());
+                Matcher matcher = TV_FULL_ROW_PATTERN.matcher(response.body());
                 int parsedCount = 0;
                 while (matcher.find()) {
                     String ticker = matcher.group(1);
-                    double close = Double.parseDouble(matcher.group(2));
+                    String rawArr = matcher.group(2);
                     String sym = TV_TICKER_TO_SYMBOL.get(ticker);
-                    if (sym != null && close > 0.0) {
+                    if (sym == null || rawArr == null || rawArr.isBlank()) {
+                        continue;
+                    }
+                    String[] parts = rawArr.split(",");
+                    List<Double> rowVals = new ArrayList<>(parts.length);
+                    for (String p : parts) {
+                        String trimmed = p.trim();
+                        if (trimmed.isEmpty() || "null".equals(trimmed)) {
+                            rowVals.add(Double.NaN);
+                        } else {
+                            try {
+                                rowVals.add(Double.parseDouble(trimmed));
+                            } catch (NumberFormatException nfe) {
+                                rowVals.add(Double.NaN);
+                            }
+                        }
+                    }
+                    if (!rowVals.isEmpty() && !Double.isNaN(rowVals.getFirst()) && rowVals.getFirst() > 0.0) {
+                        double close = rowVals.getFirst();
                         parsedCount++;
                         // INV-CACHE-3 (ClosedMarketSignalsFrozen): after initial seed, only update open-session markets
                         if (isFirstSeed || isSessionOpenAtUtc(sym, nowInstant)) {
                             nextSnap.put(sym, close);
+                            nextMatrix.put(sym, List.copyOf(rowVals));
                         }
                     }
                 }
                 livePricesRef.set(Map.copyOf(nextSnap));
+                tvMatrixRef.set(Map.copyOf(nextMatrix));
                 initialSeedCompleted.set(true);
                 tvApiReturnedCount.set(parsedCount);
                 tvApiConnected.set(parsedCount > 0);
@@ -306,6 +352,7 @@ public class OhlcvAdapter implements MarketDataPort {
         snapshot.put("cacheServedCount", served);
         snapshot.put("instrumentCount", atomicSnap.size());
         snapshot.put("prices", atomicSnap);
+        snapshot.put("tvMatrix", tvMatrixRef.get());
         return snapshot;
     }
 
