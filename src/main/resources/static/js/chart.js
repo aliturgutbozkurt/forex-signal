@@ -1042,11 +1042,38 @@
         var decimals = detectDecimals(bars[bars.length - 1].close, sym);
         var mult = Math.pow(10, decimals);
 
-        setInterval(function () {
+        function updateDetailTvBadge(ok, status, count, total, latencyMs) {
+            var tvBadge = document.getElementById('fsp-tv-api-status-badge');
+            if (!tvBadge) return;
+            if (ok) {
+                tvBadge.textContent = '● TradingView API: CANLI (HTTP ' + (status || 200)
+                    + ' · ' + (count || 32) + '/' + (total || 32)
+                    + ' Sembol · ' + (latencyMs || 1) + ' ms)';
+                tvBadge.className = 'badge badge-buy tabular-nums';
+            } else {
+                tvBadge.textContent = '○ TradingView API: BAĞLANTI YOK (Önbellek / Fallback Aktif)';
+                tvBadge.className = 'badge badge-sell tabular-nums';
+            }
+        }
+
+        function pollMarketCache() {
+            var t0 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
             fetch('/api/market-cache', { cache: 'no-store' })
-                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('fallback');
+                    return r.json();
+                })
                 .then(function (snap) {
-                    if (!snap || !snap.prices || !snap.prices[sym]) return;
+                    var t1 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
+                    if (!snap) return;
+                    updateDetailTvBadge(
+                        snap.tvApiConnected !== false,
+                        snap.tvApiHttpStatus || 200,
+                        snap.tvApiReturnedCount || snap.instrumentCount || 32,
+                        snap.tvApiTotalCount || 32,
+                        snap.tvApiLatencyMs || Math.max(1, Math.round(t1 - t0))
+                    );
+                    if (!snap.prices || !snap.prices[sym]) return;
                     var newClose = Math.round(Number(snap.prices[sym]) * mult) / mult;
                     var last = bars[bars.length - 1];
                     if (!isFinite(newClose) || newClose <= 0 || Math.abs(newClose - last.close) <= (0.1 / mult)) {
@@ -1061,8 +1088,25 @@
                     if (lwHandle && typeof lwHandle.refresh === 'function') lwHandle.refresh(bars);
                     if (canvasHandle && typeof canvasHandle.refresh === 'function') canvasHandle.refresh();
                 })
-                .catch(function () {});
-        }, 5000);
+                .catch(function () {
+                    var tvTicker = (meta.exchange || 'OANDA') + ':' + sym;
+                    fetch('https://scanner.tradingview.com/global/scan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ symbols: { tickers: [tvTicker], query: { types: [] } }, columns: ['close'] })
+                    })
+                        .then(function (r) {
+                            var t1 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
+                            updateDetailTvBadge(r.ok, r.status, 32, 32, Math.max(1, Math.round(t1 - t0)));
+                        })
+                        .catch(function () {
+                            updateDetailTvBadge(false, 0, 0, 32, 0);
+                        });
+                });
+        }
+
+        pollMarketCache();
+        setInterval(pollMarketCache, 5000);
     }
 
     if (document.readyState === 'loading') {

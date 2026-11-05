@@ -136,6 +136,11 @@ public class OhlcvAdapter implements MarketDataPort {
     private final Map<String, Bar> customBackfillStore = new ConcurrentHashMap<>();
     private final AtomicBoolean singleFlightLock = new AtomicBoolean(false);
     private final AtomicBoolean initialSeedCompleted = new AtomicBoolean(false);
+    private final AtomicBoolean tvApiConnected = new AtomicBoolean(false);
+    private final AtomicLong tvApiHttpStatus = new AtomicLong(0L);
+    private final AtomicLong tvApiLatencyMs = new AtomicLong(0L);
+    private final AtomicLong tvApiReturnedCount = new AtomicLong(0L);
+    private final AtomicLong tvApiLastSuccessEpochMs = new AtomicLong(0L);
     private final AtomicLong lastRefreshedEpochMs = new AtomicLong(System.currentTimeMillis());
     private final AtomicLong singleFlightFetchCount = new AtomicLong(0L);
     private final AtomicLong cacheServedCount = new AtomicLong(0L);
@@ -219,6 +224,7 @@ public class OhlcvAdapter implements MarketDataPort {
         if (!singleFlightLock.compareAndSet(false, true)) {
             return;
         }
+        long startNanos = System.nanoTime();
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://scanner.tradingview.com/global/scan"))
@@ -228,17 +234,22 @@ public class OhlcvAdapter implements MarketDataPort {
                     .POST(HttpRequest.BodyPublishers.ofString(cachedBatchPayload))
                     .build();
             HttpResponse<String> response = sharedHttpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            long elapsedMs = Math.max(1L, (System.nanoTime() - startNanos) / 1_000_000L);
+            tvApiHttpStatus.set(response.statusCode());
+            tvApiLatencyMs.set(elapsedMs);
             if (response.statusCode() == 200 && response.body() != null) {
                 Instant nowInstant = Instant.now();
                 boolean isFirstSeed = !initialSeedCompleted.get();
                 Map<String, Double> currentSnap = livePricesRef.get();
                 Map<String, Double> nextSnap = new HashMap<>(currentSnap);
                 Matcher matcher = TV_ROW_PATTERN.matcher(response.body());
+                int parsedCount = 0;
                 while (matcher.find()) {
                     String ticker = matcher.group(1);
                     double close = Double.parseDouble(matcher.group(2));
                     String sym = TV_TICKER_TO_SYMBOL.get(ticker);
                     if (sym != null && close > 0.0) {
+                        parsedCount++;
                         // INV-CACHE-3 (ClosedMarketSignalsFrozen): after initial seed, only update open-session markets
                         if (isFirstSeed || isSessionOpenAtUtc(sym, nowInstant)) {
                             nextSnap.put(sym, close);
@@ -247,11 +258,19 @@ public class OhlcvAdapter implements MarketDataPort {
                 }
                 livePricesRef.set(Map.copyOf(nextSnap));
                 initialSeedCompleted.set(true);
-                lastRefreshedEpochMs.set(System.currentTimeMillis());
+                tvApiReturnedCount.set(parsedCount);
+                tvApiConnected.set(parsedCount > 0);
+                long nowEpoch = System.currentTimeMillis();
+                tvApiLastSuccessEpochMs.set(nowEpoch);
+                lastRefreshedEpochMs.set(nowEpoch);
                 singleFlightFetchCount.incrementAndGet();
+            } else {
+                tvApiConnected.set(false);
+                lastRefreshedEpochMs.set(System.currentTimeMillis());
             }
         } catch (Exception ignored) {
             // INV-CACHE-2 (Stale-While-Revalidate): keep serving the latest atomic hot cache snapshot seamlessly
+            tvApiConnected.set(false);
             lastRefreshedEpochMs.set(System.currentTimeMillis());
         } finally {
             singleFlightLock.set(false);
@@ -271,6 +290,12 @@ public class OhlcvAdapter implements MarketDataPort {
         snapshot.put("source", "SINGLE_FLIGHT_SHARED_HOT_CACHE");
         snapshot.put("tlaVerified", "SharedHotCache.tla (INV-CACHE-1..4)");
         snapshot.put("externalProvider", "https://scanner.tradingview.com/global/scan");
+        snapshot.put("tvApiConnected", tvApiConnected.get());
+        snapshot.put("tvApiHttpStatus", tvApiHttpStatus.get());
+        snapshot.put("tvApiLatencyMs", tvApiLatencyMs.get());
+        snapshot.put("tvApiReturnedCount", tvApiReturnedCount.get());
+        snapshot.put("tvApiTotalCount", TV_TICKER_TO_SYMBOL.size());
+        snapshot.put("tvApiLastSuccessEpochMs", tvApiLastSuccessEpochMs.get());
         snapshot.put("ttlMs", SHARED_CACHE_TTL_MS);
         snapshot.put("lastUpdatedEpochMs", lastRefresh);
         snapshot.put("cacheAgeMs", Math.max(0L, now - lastRefresh));

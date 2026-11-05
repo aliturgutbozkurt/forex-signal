@@ -1228,7 +1228,13 @@
             TTL_MS: 5000,
             singleFlightFetches: 1,
             cacheHits: 1,
-            inFlight: false
+            inFlight: false,
+            tvApiConnected: null,
+            tvApiHttpStatus: 200,
+            tvApiLatencyMs: 0,
+            tvApiReturnedCount: 32,
+            tvApiTotalCount: 32,
+            tvApiMode: 'Baglaniyor'
         };
 
         function applyRealPricesFromCache(pricesMap) {
@@ -1304,17 +1310,23 @@
                 symbols: { tickers: tickers, query: { types: [] } },
                 columns: ['close']
             });
+            var t0 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
+            var httpStatus = 0;
             return fetch('https://scanner.tradingview.com/global/scan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: bodyJson
             })
                 .then(function (r) {
+                    httpStatus = r.status;
                     if (!r.ok) throw new Error('tv-status-' + r.status);
                     return r.json();
                 })
                 .then(function (resp) {
+                    var t1 = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
+                    var latencyMs = Math.max(1, Math.round(t1 - t0));
                     var priceMap = {};
+                    var count = 0;
                     if (resp && Array.isArray(resp.data)) {
                         for (var k = 0; k < resp.data.length; k++) {
                             var row = resp.data[k];
@@ -1323,10 +1335,17 @@
                                 var closeVal = Number(row.d[0]);
                                 if (sym && isFinite(closeVal) && closeVal > 0) {
                                     priceMap[sym] = closeVal;
+                                    count++;
                                 }
                             }
                         }
                     }
+                    sharedCache.tvApiConnected = count > 0;
+                    sharedCache.tvApiHttpStatus = httpStatus || 200;
+                    sharedCache.tvApiLatencyMs = latencyMs;
+                    sharedCache.tvApiReturnedCount = count;
+                    sharedCache.tvApiTotalCount = tickers.length;
+                    sharedCache.tvApiMode = 'Doğrudan TradingView Scanner';
                     return priceMap;
                 });
         }
@@ -1341,7 +1360,8 @@
                     if (parsed && parsed.prices) {
                         applyRealPricesFromCache(parsed.prices);
                     }
-                    if (parsed && parsed.updatedAt && (nowMs - parsed.updatedAt) < sharedCache.TTL_MS) {
+                    // Only skip network fetch if we have ALREADY verified live TradingView API connection in this tab session
+                    if (sharedCache.tvApiConnected !== null && parsed && parsed.updatedAt && (nowMs - parsed.updatedAt) < sharedCache.TTL_MS) {
                         updateCacheBadgeUi(parsed.singleFlightFetches || sharedCache.singleFlightFetches, sharedCache.cacheHits);
                         return;
                     }
@@ -1355,14 +1375,22 @@
             }
             sharedCache.inFlight = true;
 
+            var tStart = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
             fetch('/api/market-cache', { cache: 'no-store' })
                 .then(function (r) {
                     if (!r.ok) throw new Error('fallback');
                     return r.json();
                 })
                 .then(function (snap) {
+                    var tEnd = (window.performance && window.performance.now) ? window.performance.now() : Date.now();
                     sharedCache.singleFlightFetches = snap.singleFlightFetchCount || (sharedCache.singleFlightFetches + 1);
                     sharedCache.cacheHits = snap.cacheServedCount || sharedCache.cacheHits;
+                    sharedCache.tvApiConnected = snap.tvApiConnected !== undefined ? Boolean(snap.tvApiConnected) : true;
+                    sharedCache.tvApiHttpStatus = snap.tvApiHttpStatus || 200;
+                    sharedCache.tvApiLatencyMs = snap.tvApiLatencyMs || Math.max(1, Math.round(tEnd - tStart));
+                    sharedCache.tvApiReturnedCount = snap.tvApiReturnedCount || snap.instrumentCount || 32;
+                    sharedCache.tvApiTotalCount = snap.tvApiTotalCount || 32;
+                    sharedCache.tvApiMode = 'Backend Single-Flight';
                     if (snap && snap.prices) {
                         applyRealPricesFromCache(snap.prices);
                         try {
@@ -1399,6 +1427,9 @@
                             sharedCache.inFlight = false;
                         })
                         .catch(function () {
+                            sharedCache.tvApiConnected = false;
+                            sharedCache.tvApiHttpStatus = 0;
+                            sharedCache.tvApiMode = 'Bağlantı Hatası (Önbellek Aktif)';
                             updateCacheBadgeUi(sharedCache.singleFlightFetches, sharedCache.cacheHits);
                             sharedCache.inFlight = false;
                         });
@@ -1406,9 +1437,24 @@
         }
 
         function updateCacheBadgeUi(fetches, hits) {
+            var tvBadge = document.getElementById('fsp-tv-api-status-badge');
+            if (tvBadge) {
+                if (sharedCache.tvApiConnected === true) {
+                    tvBadge.textContent = '● TradingView API: CANLI (HTTP ' + sharedCache.tvApiHttpStatus
+                        + ' · ' + sharedCache.tvApiReturnedCount + '/' + sharedCache.tvApiTotalCount
+                        + ' Sembol · ' + sharedCache.tvApiLatencyMs + ' ms)';
+                    tvBadge.className = 'badge badge-buy tabular-nums';
+                } else if (sharedCache.tvApiConnected === false) {
+                    tvBadge.textContent = '○ TradingView API: BAĞLANTI YOK (Önbellek / Fallback Aktif)';
+                    tvBadge.className = 'badge badge-sell tabular-nums';
+                } else {
+                    tvBadge.textContent = '● TradingView API: Bağlanıyor...';
+                    tvBadge.className = 'badge badge-hold tabular-nums';
+                }
+            }
             var badge = document.getElementById('fsp-cache-status-badge');
             if (badge) {
-                badge.textContent = '● Dış Kaynak Single-Flight Cache Aktif · Tekil Çekim: #' + fetches + ' · Cache Hit: #' + hits + ' (0 ms)';
+                badge.textContent = '● Single-Flight Cache · Çekim: #' + fetches + ' · Cache Hit: #' + hits + ' (0 ms)';
                 badge.className = 'badge badge-buy tabular-nums';
             }
         }

@@ -16,6 +16,9 @@
         <a href="/" class="btn">← Dashboard</a>
         <h1 style="font-size:1.15rem;font-weight:700;" th:text="${instrument.symbol().value()} + ' · ' + ${instrument.displayName()}">XAUUSD</h1>
         <span class="badge" th:text="${instrument.assetClass().displayNameTr()}">Emtia</span>
+        <span id="fsp-tv-api-status-badge" class="badge badge-buy tabular-nums" title="TradingView Scanner API (https://scanner.tradingview.com/global/scan) canlı bağlantı durumu">
+            ● TradingView API: Kontrol Ediliyor...
+        </span>
         <span th:if="${instrument.delayedFeed()}" class="badge badge-degraded">15dk Gecikmeli BIST Verisi</span>
     </div>
     <nav class="app-nav" aria-label="Zaman Dilimi Seçimi" style="display:flex;flex-wrap:wrap;gap:0.35rem;">
